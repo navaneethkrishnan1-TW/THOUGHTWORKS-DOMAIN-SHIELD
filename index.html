@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thoughtworks Domain Shield // Impersonation Investigator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Background Glow & Grid -->
+  <div class="cyber-grid"></div>
+  <div class="ambient-glow"></div>
+
+  <!-- Header Section -->
+  <header class="app-header">
+    <div class="container header-container">
+      <div class="brand-group">
+        <div class="tw-logo-badge">TW</div>
+        <div class="brand-text">
+          <h1>THOUGHTWORKS DOMAIN SHIELD</h1>
+          <p class="subtitle">Suspicious Domain & Impersonation Triage Suite // SOC Threat Intelligence</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span class="badge badge-identity">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          navaneethkrishnan1-TW
+        </span>
+        <button id="historyToggleBtn" class="btn btn-outline btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          NT Memory (<span id="historyCount">0</span>)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container main-content">
+    
+    <!-- Search / Target Input Section -->
+    <section class="search-panel card">
+      <div class="search-header">
+        <h2>Target Reconnaissance</h2>
+        <p class="search-instruction">Enter domain, subdomain, or full phishing URL. Auto-normalizes and defangs target.</p>
+      </div>
+      <form id="investigateForm" class="search-form">
+        <div class="input-wrapper">
+          <span class="input-icon">🎯</span>
+          <input 
+            type="text" 
+            id="targetInput" 
+            placeholder="e.g. thoughtworks-careers.online or hxxps://thoughtw0rks-portal[.]site/login" 
+            required 
+            autocomplete="off" 
+            spellcheck="false"
+          >
+          <button type="button" id="pasteBtn" class="btn-input-action" title="Paste from clipboard">📋 Paste</button>
+        </div>
+        <div class="button-row">
+          <button type="submit" id="submitBtn" class="btn btn-primary">
+            <span class="spinner" id="searchSpinner" style="display: none;"></span>
+            <span id="btnText">🔍 Investigate Domain</span>
+          </button>
+          <button type="button" id="quickDemoBtn" class="btn btn-secondary">⚡ Load Demo Phish</button>
+          <button type="button" id="resetBtn" class="btn btn-ghost">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Loading State Bar -->
+    <div id="loadingIndicator" class="loading-bar card" style="display: none;">
+      <div class="loading-content">
+        <div class="loading-spinner-large"></div>
+        <div class="loading-text">
+          <h3 id="loadingStep">Dispatching parallel intelligence queries...</h3>
+          <p class="dim-text">Querying DNS-over-HTTPS (A, MX, TXT, DMARC), ICANN RDAP, RIPE NCC BGP/ASN, and urlscan.io...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Investigation Results Section -->
+    <div id="resultsWrapper" style="display: none;">
+      
+      <!-- Threat Overview Header -->
+      <section class="threat-overview card">
+        <div class="overview-grid">
+          
+          <!-- Gauge & Score -->
+          <div class="gauge-column">
+            <div class="gauge-container">
+              <svg class="gauge-svg" viewBox="0 0 120 120">
+                <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                <circle id="gaugeArc" class="gauge-bar" cx="60" cy="60" r="50"></circle>
+              </svg>
+              <div class="gauge-content">
+                <span id="scoreValue" class="score-number">--</span>
+                <span class="score-label">/ 100</span>
+              </div>
+            </div>
+            <div id="verdictBadge" class="badge-verdict">ANALYZING</div>
+          </div>
+
+          <!-- Target & Impersonation Flags -->
+          <div class="target-details-column">
+            <div class="target-badges-row">
+              <div class="target-box">
+                <span class="label">TARGET DOMAIN</span>
+                <span id="displayDomain" class="value mono">--</span>
+              </div>
+              <div class="target-box">
+                <span class="label">DEFANGED</span>
+                <span id="displayDefanged" class="value mono text-cyan">--</span>
+              </div>
+              <div class="target-box">
+                <span class="label">TIMESTAMP</span>
+                <span id="displayTimestamp" class="value mono text-muted">--</span>
+              </div>
+            </div>
+
+            <div class="impersonation-flags-box">
+              <div class="box-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                THOUGHTWORKS IMPERSONATION SIGNALS
+              </div>
+              <ul id="impersonationFlagsList" class="flags-list">
+                <!-- Dynamically populated -->
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 4-Pillar Intelligence Grid -->
+      <section class="intel-grid">
+        
+        <!-- Pillar 1: DNS & Routing -->
+        <div class="intel-card card">
+          <div class="card-header-line">
+            <div class="icon-circle icon-blue">🌐</div>
+            <h3>DNS & Routing (DoH)</h3>
+          </div>
+          <div class="intel-body">
+            <div class="intel-row">
+              <span class="row-label">Resolved IPv4:</span>
+              <span id="dnsARecords" class="row-value mono text-green">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">IPv6 (AAAA):</span>
+              <span id="dnsAAAARecords" class="row-value mono text-muted">None</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">BGP ASN & Operator:</span>
+              <span id="bgpAsn" class="row-value mono">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">BGP Prefix:</span>
+              <span id="bgpPrefix" class="row-value mono text-muted">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">Authoritative NS:</span>
+              <span id="dnsNSRecords" class="row-value mono text-muted">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 2: Email Authentication -->
+        <div class="intel-card card">
+          <div class="card-header-line">
+            <div class="icon-circle icon-yellow">✉️</div>
+            <h3>Email Weaponization</h3>
+          </div>
+          <div class="intel-body">
+            <div class="intel-row">
+              <span class="row-label">MX Records:</span>
+              <span id="emailMXRecords" class="row-value mono">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">Email Threat:</span>
+              <span id="emailThreatStatus" class="row-value">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">SPF Record:</span>
+              <span id="emailSPFRecord" class="row-value mono text-muted">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">DMARC Status:</span>
+              <span id="emailDMARCStatus" class="row-value mono">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 3: WHOIS & Registration -->
+        <div class="intel-card card">
+          <div class="card-header-line">
+            <div class="icon-circle icon-magenta">📋</div>
+            <h3>Registration & RDAP</h3>
+          </div>
+          <div class="intel-body">
+            <div class="intel-row">
+              <span class="row-label">Registrar:</span>
+              <span id="rdapRegistrar" class="row-value">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">Created Date:</span>
+              <span id="rdapCreated" class="row-value mono">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">Domain Age:</span>
+              <span id="rdapAge" class="row-value mono text-cyan">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">Expiration:</span>
+              <span id="rdapExpires" class="row-value mono text-muted">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 4: Threat Intelligence & Sandbox -->
+        <div class="intel-card card">
+          <div class="card-header-line">
+            <div class="icon-circle icon-red">🔬</div>
+            <h3>Public Sandbox Intel</h3>
+          </div>
+          <div class="intel-body">
+            <div class="intel-row">
+              <span class="row-label">urlscan.io Scans:</span>
+              <span id="urlscanCount" class="row-value mono">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">Scan Result:</span>
+              <span id="urlscanLink" class="row-value">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">Live Screenshot:</span>
+              <span id="urlscanScreenshot" class="row-value">--</span>
+            </div>
+            <div class="intel-row">
+              <span class="row-label">SSL Cert Search:</span>
+              <span id="crtshLink" class="row-value">--</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Launchpad Section: The 13 Tools from Screenshot -->
+      <section class="tools-launchpad card">
+        <div class="tools-header-row">
+          <div>
+            <h2>Investigation Tools Launchpad</h2>
+            <p class="search-instruction">Pre-configured threat intelligence and sandbox lookup links with target pre-filled.</p>
+          </div>
+          <button id="openAllToolsBtn" class="btn btn-primary">
+            🚀 Launch All 13 Tools in Tabs
+          </button>
+        </div>
+
+        <div id="toolsGrid" class="tools-grid">
+          <!-- Dynamically populated from TOOLS_MAP -->
+        </div>
+      </section>
+
+      <!-- Abuse Takedown Template Section -->
+      <section class="takedown-section card">
+        <div class="takedown-header">
+          <div>
+            <h2>Registrar & Hosting Abuse Takedown Complaint</h2>
+            <p class="search-instruction">Pre-drafted formal abuse letter ready to submit to registrar and host abuse contacts.</p>
+          </div>
+          <div class="action-btn-group">
+            <button id="copyTakedownBtn" class="btn btn-outline btn-sm">📋 Copy Letter</button>
+            <button id="downloadReportBtn" class="btn btn-secondary btn-sm">💾 Download Report (.md)</button>
+            <button id="downloadJsonBtn" class="btn btn-ghost btn-sm">💾 Export JSON</button>
+          </div>
+        </div>
+        <textarea id="takedownTextarea" class="takedown-textarea" readonly rows="9"></textarea>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- History & Memory Sidebar / Drawer -->
+  <div id="historyDrawer" class="history-drawer">
+    <div class="drawer-header">
+      <h3>📁 NT Investigation Memory</h3>
+      <button id="closeDrawerBtn" class="btn-close">&times;</button>
+    </div>
+    <div class="drawer-body">
+      <div id="historyListContainer" class="history-list">
+        <!-- Rendered history -->
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button id="exportMemoryBtn" class="btn btn-outline btn-sm">📥 Export All Memory (JSON)</button>
+      <button id="clearMemoryBtn" class="btn btn-ghost btn-sm text-red">Clear Memory</button>
+    </div>
+  </div>
+  <div id="drawerOverlay" class="drawer-overlay"></div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast"></div>
+
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <p>Thoughtworks Cyber Threat Intelligence // Maintained by <strong>navaneethkrishnan1-TW</strong></p>
+      <p class="dim-text">Powered by Google DoH, ICANN RDAP, RIPE NCC, and Community Threat Intelligence Tools.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
