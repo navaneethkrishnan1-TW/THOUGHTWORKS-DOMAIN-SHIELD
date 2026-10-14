@@ -182,6 +182,7 @@ const closeUrlscanModalBtn = document.getElementById("closeUrlscanModalBtn");
 const urlscanApiKeyInput = document.getElementById("urlscanApiKeyInput");
 const vtApiKeyInput = document.getElementById("vtApiKeyInput");
 const saveUrlscanKeyBtn = document.getElementById("saveUrlscanKeyBtn");
+const copyTeamLinkBtn = document.getElementById("copyTeamLinkBtn");
 const clearUrlscanKeyBtn = document.getElementById("clearUrlscanKeyBtn");
 const urlscanKeyStatusText = document.getElementById("urlscanKeyStatusText");
 const vtKeyStatusText = document.getElementById("vtKeyStatusText");
@@ -209,11 +210,29 @@ const toast = document.getElementById("toast");
 // INITIALIZATION
 // ==============================================================================
 document.addEventListener("DOMContentLoaded", () => {
+  checkTeamConfigHash();
   renderToolsLaunchpad("thoughtworks.com", null);
   updateHistoryBadge();
   updateUrlscanKeyUI();
   setupEventListeners();
 });
+
+function checkTeamConfigHash() {
+  if (window.location.hash && window.location.hash.startsWith("#config=")) {
+    try {
+      const encoded = window.location.hash.replace("#config=", "");
+      const parsed = JSON.parse(atob(encoded));
+      if (parsed && (parsed.urlscan || parsed.vt)) {
+        saveApiKeys(parsed.urlscan || "", parsed.vt || "");
+        showToast("🎉 Team API keys loaded and activated successfully!");
+      }
+    } catch (e) {
+      console.warn("Failed to parse team config hash:", e);
+    }
+    // Clean hash from browser address bar immediately
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+}
 
 function openUrlscanModal() {
   if (urlscanModal) {
@@ -305,6 +324,20 @@ function setupEventListeners() {
       const vKey = vtApiKeyInput ? vtApiKeyInput.value : "";
       saveApiKeys(uKey, vKey);
       closeUrlscanModal();
+    });
+  }
+  if (copyTeamLinkBtn) {
+    copyTeamLinkBtn.addEventListener("click", () => {
+      const uKey = getUrlscanApiKey();
+      const vKey = getVTApiKey();
+      if (!uKey && !vKey) {
+        showToast("Enter and save at least one API key first.");
+        return;
+      }
+      const payload = btoa(JSON.stringify({ urlscan: uKey, vt: vKey }));
+      const link = `${window.location.origin}${window.location.pathname}#config=${payload}`;
+      navigator.clipboard.writeText(link);
+      showToast("🔗 Team 1-click link copied! Share via private Slack/Chat.");
     });
   }
   if (clearUrlscanKeyBtn) {
