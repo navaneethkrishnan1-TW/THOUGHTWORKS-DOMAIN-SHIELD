@@ -1,7 +1,7 @@
 /**
  * Thoughtworks Domain Shield - Client-Side Threat Intelligence App
  * Author: navaneethkrishnan1-TW
- * Powered by Google DoH, ICANN RDAP, RIPE NCC, and LocalStorage NT Memory
+ * Dual-Engine Architecture: VirusTotal (VT) & urlscan.io
  */
 
 // ==============================================================================
@@ -32,94 +32,6 @@ const IMPERSONATION_KEYWORDS = [
   "solutions", "lab", "digital", "official", "network", "dev"
 ];
 
-// Curated Domain OSINT & Infrastructure Threat Intelligence Tools
-const TOOLS_MAP = [
-  {
-    id: 1,
-    name: "WHOis",
-    category: "Domain Registration & Nameserver Dossier",
-    icon: "📜",
-    getUrl: (d, ip) => `https://who.is/whois/${d}`
-  },
-  {
-    id: 2,
-    name: "ICANN Lookup",
-    category: "Official ICANN RDAP Registrar Records",
-    icon: "🌐",
-    getUrl: (d, ip) => `https://lookup.icann.org/en/lookup?q=${encodeURIComponent(d)}`
-  },
-  {
-    id: 3,
-    name: "URL Void",
-    category: "Domain Safety & Web Blacklist Engine (30+ Engines)",
-    icon: "🔍",
-    getUrl: (d, ip) => `https://www.urlvoid.com/scan/${d}/`
-  },
-  {
-    id: 4,
-    name: "URL Scan.io",
-    category: "DOM, Redirects & Page Screenshot Sandbox",
-    icon: "🔎",
-    getUrl: (d, ip) => `https://urlscan.io/search/#domain%3A${encodeURIComponent(d)}`
-  },
-  {
-    id: 5,
-    name: "VirusTotal",
-    category: "Multi-Vendor Domain Threat Intel & Passive DNS",
-    icon: "🦠",
-    getUrl: (d, ip) => `https://www.virustotal.com/gui/domain/${encodeURIComponent(d)}`
-  },
-  {
-    id: 6,
-    name: "Crt.sh",
-    category: "Certificate Transparency Logs & Subdomain Discovery",
-    icon: "🔐",
-    getUrl: (d, ip) => `https://crt.sh/?q=%25${encodeURIComponent(d)}`
-  },
-  {
-    id: 7,
-    name: "EasyDMARC",
-    category: "DMARC, SPF & Anti-Spoofing Posture Validator",
-    icon: "🛡️",
-    getUrl: (d, ip) => `https://easydmarc.com/tools/dmarc-lookup?domain=${encodeURIComponent(d)}`
-  },
-  {
-    id: 8,
-    name: "Email Scanner Sensei",
-    category: "MX Records & Mail Delivery Health Assessment",
-    icon: "✉️",
-    getUrl: (d, ip) => `https://mxtoolbox.com/emailhealth/${encodeURIComponent(d)}`
-  },
-  {
-    id: 9,
-    name: "Abuse IP DB",
-    category: "IP Abuse Confidence & Threat Incident Reports",
-    icon: "🚫",
-    getUrl: (d, ip) => ip ? `https://www.abuseipdb.com/check/${ip}` : `https://www.abuseipdb.com/`
-  },
-  {
-    id: 10,
-    name: "IP Void",
-    category: "IP Blacklist & Hosting Infrastructure Check",
-    icon: "🌐",
-    getUrl: (d, ip) => ip ? `https://www.ipvoid.com/ip-blacklist-check/?ip=${ip}` : `https://www.ipvoid.com/domain-reputation-check/`
-  },
-  {
-    id: 11,
-    name: "cymru",
-    category: "Team Cymru IP to ASN & BGP Reputation",
-    icon: "🐉",
-    getUrl: (d, ip) => `https://team-cymru.com/community-services/ip-asn-mapping/`
-  },
-  {
-    id: 12,
-    name: "Shodan",
-    category: "Open Ports, Host Services & SSL Banners",
-    icon: "👁️",
-    getUrl: (d, ip) => `https://www.shodan.io/search?query=hostname%3A${encodeURIComponent(d)}`
-  }
-];
-
 // Current State
 let currentIntel = null;
 
@@ -138,45 +50,8 @@ const loadingIndicator = document.getElementById("loadingIndicator");
 const loadingStep = document.getElementById("loadingStep");
 const resultsWrapper = document.getElementById("resultsWrapper");
 
-// Results Elements
-const scoreValue = document.getElementById("scoreValue");
-const gaugeArc = document.getElementById("gaugeArc");
-const verdictBadge = document.getElementById("verdictBadge");
-const displayDomain = document.getElementById("displayDomain");
-const displayDefanged = document.getElementById("displayDefanged");
-const displayTimestamp = document.getElementById("displayTimestamp");
-const impersonationFlagsList = document.getElementById("impersonationFlagsList");
-
-const dnsARecords = document.getElementById("dnsARecords");
-const dnsAAAARecords = document.getElementById("dnsAAAARecords");
-const bgpAsn = document.getElementById("bgpAsn");
-const bgpPrefix = document.getElementById("bgpPrefix");
-const dnsNSRecords = document.getElementById("dnsNSRecords");
-
-const emailMXRecords = document.getElementById("emailMXRecords");
-const emailThreatStatus = document.getElementById("emailThreatStatus");
-const emailSPFRecord = document.getElementById("emailSPFRecord");
-const emailDMARCStatus = document.getElementById("emailDMARCStatus");
-
-const rdapRegistrar = document.getElementById("rdapRegistrar");
-const rdapCreated = document.getElementById("rdapCreated");
-const rdapAge = document.getElementById("rdapAge");
-const rdapExpires = document.getElementById("rdapExpires");
-
-const urlscanCount = document.getElementById("urlscanCount");
-const urlscanVerdictRow = document.getElementById("urlscanVerdictRow");
-const urlscanVerdict = document.getElementById("urlscanVerdict");
-const urlscanTitleRow = document.getElementById("urlscanTitleRow");
-const urlscanTitle = document.getElementById("urlscanTitle");
-const urlscanLink = document.getElementById("urlscanLink");
-const urlscanScreenshot = document.getElementById("urlscanScreenshot");
-const urlscanThumbWrapper = document.getElementById("urlscanThumbWrapper");
-const urlscanThumbImg = document.getElementById("urlscanThumbImg");
-const urlscanThumbLink = document.getElementById("urlscanThumbLink");
-const urlscanSubmitBtn = document.getElementById("urlscanSubmitBtn");
-const urlscanSubmitMsg = document.getElementById("urlscanSubmitMsg");
+// Header & Modal Elements
 const urlscanKeyToggleBtn = document.getElementById("urlscanKeyToggleBtn");
-const urlscanKeyQuickBtn = document.getElementById("urlscanKeyQuickBtn");
 const urlscanModal = document.getElementById("urlscanModal");
 const closeUrlscanModalBtn = document.getElementById("closeUrlscanModalBtn");
 const urlscanApiKeyInput = document.getElementById("urlscanApiKeyInput");
@@ -186,16 +61,66 @@ const copyTeamLinkBtn = document.getElementById("copyTeamLinkBtn");
 const clearUrlscanKeyBtn = document.getElementById("clearUrlscanKeyBtn");
 const urlscanKeyStatusText = document.getElementById("urlscanKeyStatusText");
 const vtKeyStatusText = document.getElementById("vtKeyStatusText");
-const crtshLink = document.getElementById("crtshLink");
 
-const toolsGrid = document.getElementById("toolsGrid");
-const openAllToolsBtn = document.getElementById("openAllToolsBtn");
+// API Status Bar Pills
+const vtStatusPill = document.getElementById("vtStatusPill");
+const vtStatusText = document.getElementById("vtStatusText");
+const urlscanStatusPill = document.getElementById("urlscanStatusPill");
+const urlscanStatusText = document.getElementById("urlscanStatusText");
+const configKeysQuickLink = document.getElementById("configKeysQuickLink");
+
+// Threat Overview Elements
+const scoreValue = document.getElementById("scoreValue");
+const gaugeArc = document.getElementById("gaugeArc");
+const verdictBadge = document.getElementById("verdictBadge");
+const displayDomain = document.getElementById("displayDomain");
+const displayDefanged = document.getElementById("displayDefanged");
+const displayTimestamp = document.getElementById("displayTimestamp");
+const impersonationFlagsList = document.getElementById("impersonationFlagsList");
+
+// VirusTotal Card Elements
+const vtVerdictBadge = document.getElementById("vtVerdictBadge");
+const vtRatioText = document.getElementById("vtRatioText");
+const vtBarMalicious = document.getElementById("vtBarMalicious");
+const vtBarSuspicious = document.getElementById("vtBarSuspicious");
+const vtBarHarmless = document.getElementById("vtBarHarmless");
+const vtBarUndetected = document.getElementById("vtBarUndetected");
+const vtCountMalicious = document.getElementById("vtCountMalicious");
+const vtCountSuspicious = document.getElementById("vtCountSuspicious");
+const vtCountHarmless = document.getElementById("vtCountHarmless");
+const vtReputation = document.getElementById("vtReputation");
+const vtTagsList = document.getElementById("vtTagsList");
+const vtVendorsList = document.getElementById("vtVendorsList");
+const vtDeepLink = document.getElementById("vtDeepLink");
+const vtCorsNotice = document.getElementById("vtCorsNotice");
+
+// urlscan.io Card Elements
+const urlscanVerdictBadge = document.getElementById("urlscanVerdictBadge");
+const screenshotStatus = document.getElementById("screenshotStatus");
+const screenshotContainer = document.getElementById("screenshotContainer");
+const screenshotPlaceholder = document.getElementById("screenshotPlaceholder");
+const screenshotLink = document.getElementById("screenshotLink");
+const screenshotImg = document.getElementById("screenshotImg");
+const triggerScanScreenshotBtn = document.getElementById("triggerScanScreenshotBtn");
+
+const landingTitle = document.getElementById("landingTitle");
+const landingEffectiveUrl = document.getElementById("landingEffectiveUrl");
+const landingIpCountry = document.getElementById("landingIpCountry");
+const landingAsn = document.getElementById("landingAsn");
+const landingServer = document.getElementById("landingServer");
+const landingVerdictScore = document.getElementById("landingVerdictScore");
+
+const urlscanSubmitLiveBtn = document.getElementById("urlscanSubmitLiveBtn");
+const urlscanDeepLink = document.getElementById("urlscanDeepLink");
+const urlscanLiveSubmitStatus = document.getElementById("urlscanLiveSubmitStatus");
+
+// Abuse Takedown Elements
 const takedownTextarea = document.getElementById("takedownTextarea");
 const copyTakedownBtn = document.getElementById("copyTakedownBtn");
 const downloadReportBtn = document.getElementById("downloadReportBtn");
 const downloadJsonBtn = document.getElementById("downloadJsonBtn");
 
-// History Drawer
+// Memory Drawer Elements
 const historyToggleBtn = document.getElementById("historyToggleBtn");
 const historyDrawer = document.getElementById("historyDrawer");
 const drawerOverlay = document.getElementById("drawerOverlay");
@@ -211,9 +136,8 @@ const toast = document.getElementById("toast");
 // ==============================================================================
 document.addEventListener("DOMContentLoaded", () => {
   checkTeamConfigHash();
-  renderToolsLaunchpad("thoughtworks.com", null);
+  updateKeyUI();
   updateHistoryBadge();
-  updateUrlscanKeyUI();
   setupEventListeners();
 });
 
@@ -224,445 +148,17 @@ function checkTeamConfigHash() {
       const parsed = JSON.parse(atob(encoded));
       if (parsed && (parsed.urlscan || parsed.vt)) {
         saveApiKeys(parsed.urlscan || "", parsed.vt || "");
-        showToast("🎉 Team API keys loaded and activated successfully!");
+        showToast("🎉 Team API keys activated successfully!");
       }
     } catch (e) {
       console.warn("Failed to parse team config hash:", e);
     }
-    // Clean hash from browser address bar immediately
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }
 }
 
-function openUrlscanModal() {
-  if (urlscanModal) {
-    if (urlscanApiKeyInput) urlscanApiKeyInput.value = getUrlscanApiKey();
-    if (vtApiKeyInput) vtApiKeyInput.value = getVTApiKey();
-    updateUrlscanKeyUI();
-    urlscanModal.style.display = "flex";
-  }
-}
-
-function closeUrlscanModal() {
-  if (urlscanModal) {
-    urlscanModal.style.display = "none";
-  }
-}
-
-function setupEventListeners() {
-  investigateForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const raw = targetInput.value.trim();
-    if (raw) runInvestigation(raw);
-  });
-
-  pasteBtn.addEventListener("click", async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      targetInput.value = text.trim();
-      targetInput.focus();
-    } catch {
-      showToast("Clipboard read blocked. Paste manually (Cmd+V).");
-    }
-  });
-
-  quickDemoBtn.addEventListener("click", () => {
-    targetInput.value = "thoughtworks-careers.online";
-    runInvestigation("thoughtworks-careers.online");
-  });
-
-  resetBtn.addEventListener("click", () => {
-    targetInput.value = "";
-    resultsWrapper.style.display = "none";
-    currentIntel = null;
-  });
-
-  openAllToolsBtn.addEventListener("click", () => {
-    if (!currentIntel) return;
-    const d = currentIntel.domain;
-    const ip = currentIntel.dns.a[0] || null;
-    TOOLS_MAP.forEach(tool => {
-      window.open(tool.getUrl(d, ip), "_blank");
-    });
-    showToast(`Opened all ${TOOLS_MAP.length} Domain OSINT tools in browser tabs!`);
-  });
-
-  copyTakedownBtn.addEventListener("click", () => {
-    if (!takedownTextarea.value) return;
-    navigator.clipboard.writeText(takedownTextarea.value);
-    showToast("Takedown notice copied to clipboard!");
-  });
-
-  downloadReportBtn.addEventListener("click", () => {
-    if (!currentIntel) return;
-    downloadFile(`TW-Report-${currentIntel.domain}.md`, generateMarkdownReport(currentIntel), "text/markdown");
-  });
-
-  downloadJsonBtn.addEventListener("click", () => {
-    if (!currentIntel) return;
-    downloadFile(`TW-Intel-${currentIntel.domain}.json`, JSON.stringify(currentIntel, null, 2), "application/json");
-  });
-
-  historyToggleBtn.addEventListener("click", openHistoryDrawer);
-  closeDrawerBtn.addEventListener("click", closeHistoryDrawer);
-  drawerOverlay.addEventListener("click", closeHistoryDrawer);
-  exportMemoryBtn.addEventListener("click", exportAllMemory);
-  clearMemoryBtn.addEventListener("click", clearMemory);
-
-  // urlscan.io Key & Scan Event Listeners
-  if (urlscanKeyToggleBtn) urlscanKeyToggleBtn.addEventListener("click", openUrlscanModal);
-  if (urlscanKeyQuickBtn) urlscanKeyQuickBtn.addEventListener("click", openUrlscanModal);
-  if (closeUrlscanModalBtn) closeUrlscanModalBtn.addEventListener("click", closeUrlscanModal);
-  if (urlscanModal) {
-    urlscanModal.addEventListener("click", (e) => {
-      if (e.target === urlscanModal) closeUrlscanModal();
-    });
-  }
-  if (saveUrlscanKeyBtn) {
-    saveUrlscanKeyBtn.addEventListener("click", () => {
-      const uKey = urlscanApiKeyInput ? urlscanApiKeyInput.value : "";
-      const vKey = vtApiKeyInput ? vtApiKeyInput.value : "";
-      saveApiKeys(uKey, vKey);
-      closeUrlscanModal();
-    });
-  }
-  if (copyTeamLinkBtn) {
-    copyTeamLinkBtn.addEventListener("click", () => {
-      const uKey = getUrlscanApiKey();
-      const vKey = getVTApiKey();
-      if (!uKey && !vKey) {
-        showToast("Enter and save at least one API key first.");
-        return;
-      }
-      const payload = btoa(JSON.stringify({ urlscan: uKey, vt: vKey }));
-      const link = `${window.location.origin}${window.location.pathname}#config=${payload}`;
-      navigator.clipboard.writeText(link);
-      showToast("🔗 Team 1-click link copied! Share via private Slack/Chat.");
-    });
-  }
-  if (clearUrlscanKeyBtn) {
-    clearUrlscanKeyBtn.addEventListener("click", () => {
-      clearApiKeys();
-      closeUrlscanModal();
-    });
-  }
-  if (urlscanSubmitBtn) {
-    urlscanSubmitBtn.addEventListener("click", () => {
-      if (currentIntel && currentIntel.domain) {
-        submitUrlscanScan(currentIntel.domain);
-      } else {
-        showToast("Please investigate a domain first.");
-      }
-    });
-  }
-}
-
 // ==============================================================================
-// NORMALIZATION & LEVENSHTEIN DISTANCE
-// ==============================================================================
-function normalizeTarget(raw) {
-  let clean = raw.trim();
-  clean = clean.replace(/hxxps:\/\//i, "https://").replace(/hxxp:\/\//i, "http://");
-  clean = clean.replace(/\[\.\]/g, ".").replace(/\(\.\)/g, ".");
-  clean = clean.replace(/\[:\/\/\]/g, "://").replace(/\(:\/\/\)/g, "://");
-
-  let domain = clean;
-  if (clean.includes("://")) {
-    try {
-      const u = new URL(clean);
-      domain = u.hostname.toLowerCase();
-    } catch {
-      domain = clean.split("/")[2] || clean;
-    }
-  } else {
-    domain = clean.split("/")[0].split(":")[0].toLowerCase();
-  }
-  domain = domain.replace(/^\.+|\.+$/g, "");
-
-  const defangedDomain = domain.replace(/\./g, "[.]");
-  return { domain, defangedDomain };
-}
-
-function levenshteinDistance(s1, s2) {
-  if (s1.length < s2.length) return levenshteinDistance(s2, s1);
-  if (s2.length === 0) return s1.length;
-  let prevRow = Array.from({ length: s2.length + 1 }, (_, i) => i);
-  for (let i = 0; i < s1.length; i++) {
-    let currRow = [i + 1];
-    for (let j = 0; j < s2.length; j++) {
-      let ins = prevRow[j + 1] + 1;
-      let del = currRow[j] + 1;
-      let sub = prevRow[j] + (s1[i] !== s2[j] ? 1 : 0);
-      currRow.push(Math.min(ins, del, sub));
-    }
-    prevRow = currRow;
-  }
-  return prevRow[prevRow.length - 1];
-}
-
-// ==============================================================================
-// PARALLEL RECONNAISSANCE ENGINE (CLIENT-SIDE DOH & APIS)
-// ==============================================================================
-async function runInvestigation(rawInput) {
-  const { domain, defangedDomain } = normalizeTarget(rawInput);
-  if (!domain || !domain.includes(".")) {
-    showToast("Invalid domain format! Please enter a valid domain.");
-    return;
-  }
-
-  setLoading(true, `Querying DNS, RDAP, and Threat Feeds for ${defangedDomain}...`);
-
-  const intel = {
-    timestamp: new Date().toISOString(),
-    domain,
-    defangedDomain,
-    dns: { a: [], aaaa: [], mx: [], txt: [], spf: null, dmarc: null, ns: [] },
-    rdap: { registrar: "Unknown", created: null, expires: null, ageDays: null },
-    bgp: { asn: null, asName: null, prefix: null },
-    urlscan: {
-      scansFound: 0,
-      latestUrl: null,
-      screenshotUrl: null,
-      malicious: false,
-      score: 0,
-      title: null,
-      server: null,
-      ip: null,
-      date: null,
-      categories: []
-    },
-    indicators: [],
-    riskScore: 0,
-    verdict: "ANALYZING"
-  };
-
-  try {
-    // 1. Parallel DNS-over-HTTPS queries via Google Public DNS (CORS enabled)
-    const [aRes, aaaaRes, mxRes, txtRes, dmarcRes, nsRes] = await Promise.all([
-      queryDoH(domain, "A"),
-      queryDoH(domain, "AAAA"),
-      queryDoH(domain, "MX"),
-      queryDoH(domain, "TXT"),
-      queryDoH(`_dmarc.${domain}`, "TXT"),
-      queryDoH(domain, "NS")
-    ]);
-
-    intel.dns.a = aRes;
-    intel.dns.aaaa = aaaaRes;
-    intel.dns.mx = mxRes;
-    intel.dns.txt = txtRes;
-    intel.dns.ns = nsRes;
-
-    // Parse SPF
-    const spfMatch = txtRes.find(t => t.toLowerCase().includes("v=spf1"));
-    if (spfMatch) intel.dns.spf = spfMatch;
-
-    // Parse DMARC
-    if (dmarcRes.length > 0) intel.dns.dmarc = dmarcRes[0];
-
-    // 2. Query ICANN RDAP for registration data
-    const rdapData = await queryRDAP(domain);
-    intel.rdap = rdapData;
-
-    // 3. Query BGP / ASN via RIPE NCC for the primary resolved IP
-    const primaryIp = intel.dns.a[0] || null;
-    if (primaryIp) {
-      const bgpData = await queryRIPE(primaryIp);
-      intel.bgp = bgpData;
-    }
-
-    // 4. Query public urlscan.io search
-    const urlscanData = await queryUrlscan(domain);
-    intel.urlscan = urlscanData;
-
-    // 5. Calculate Impersonation Risk Score
-    const { score, indicators, verdict } = calculateRisk(intel);
-    intel.riskScore = score;
-    intel.indicators = indicators;
-    intel.verdict = verdict;
-
-    // Save to NT LocalStorage Memory
-    saveToMemory(intel);
-
-    currentIntel = intel;
-    renderResults(intel);
-  } catch (err) {
-    console.error("Investigation error:", err);
-    showToast("Reconnaissance encountered an error. Check console.");
-  } finally {
-    setLoading(false);
-  }
-}
-
-// Google DNS-over-HTTPS Query
-async function queryDoH(name, type) {
-  try {
-    const url = `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=${type}`;
-    const res = await fetch(url, { headers: { Accept: "application/dns-json" } });
-    if (!res.ok) return [];
-    const data = await res.json();
-    if (data.Answer && Array.isArray(data.Answer)) {
-      return data.Answer.map(ans => ans.data.replace(/^"|"$/g, ""));
-    }
-    return [];
-  } catch {
-    return [];
-  }
-}
-
-// Multi-Source RDAP & WHOIS Query Engine (Fast, CORS-Safe, Multi-Tiered)
-async function queryRDAP(domain) {
-  const result = {
-    registrar: "Unavailable (Check WHOIS link)",
-    created: null,
-    expires: null,
-    ageDays: null,
-    abuseEmail: null
-  };
-
-  const tld = domain.split(".").pop().toLowerCase();
-
-  // Helper with 4.5s timeout so queries never hang
-  const fetchWithTimeout = async (url, options = {}, timeoutMs = 4500) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const res = await fetch(url, { ...options, signal: controller.signal });
-      clearTimeout(timer);
-      return res;
-    } catch (e) {
-      clearTimeout(timer);
-      throw e;
-    }
-  };
-
-  // Source 1: Direct Verisign Registry RDAP for .com and .net (Authoritative, Zero Redirects, CORS enabled)
-  if (tld === "com" || tld === "net") {
-    try {
-      const res = await fetchWithTimeout(`https://rdap.verisign.com/${tld}/v1/domain/${domain}`);
-      if (res.ok) {
-        const data = await res.json();
-        
-        // Find registration date
-        if (data.events && Array.isArray(data.events)) {
-          const regEvent = data.events.find(e => e.eventAction === "registration");
-          const expEvent = data.events.find(e => e.eventAction === "expiration");
-          if (regEvent && regEvent.eventDate) {
-            result.created = regEvent.eventDate;
-            const dt = new Date(regEvent.eventDate);
-            if (!isNaN(dt.getTime())) {
-              result.ageDays = Math.floor(Math.abs(Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
-            }
-          }
-          if (expEvent && expEvent.eventDate) {
-            result.expires = expEvent.eventDate;
-          }
-        }
-
-        // Find registrar
-        if (data.entities && Array.isArray(data.entities)) {
-          const regEntity = data.entities.find(e => e.roles && e.roles.includes("registrar"));
-          if (regEntity) {
-            const fnProp = regEntity.vcardArray?.[1]?.find(p => p[0] === "fn");
-            if (fnProp && fnProp[3]) {
-              result.registrar = fnProp[3];
-            } else if (regEntity.handle) {
-              result.registrar = `Registrar IANA ID: ${regEntity.handle}`;
-            }
-          }
-        }
-        
-        if (result.created && result.registrar !== "Unavailable (Check WHOIS link)") {
-          return result;
-        }
-      }
-    } catch (e) {
-      console.warn("Direct Verisign RDAP error, trying next source:", e);
-    }
-  }
-
-  // Source 2: NetworkCalc Public WHOIS API (CORS enabled, supports .com, .org, .xyz, .net, etc.)
-  try {
-    const res = await fetchWithTimeout(`https://networkcalc.com/api/dns/whois/${domain}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.status === "OK" && data.whois) {
-        const w = data.whois;
-        if (w.registrar) result.registrar = w.registrar;
-        if (w.registry_created_date) {
-          result.created = w.registry_created_date;
-          const dt = new Date(w.registry_created_date);
-          if (!isNaN(dt.getTime())) {
-            result.ageDays = Math.floor(Math.abs(Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
-          }
-        }
-        if (w.registry_expiration_date) result.expires = w.registry_expiration_date;
-        if (w.abuse_email) result.abuseEmail = w.abuse_email;
-        if (result.created) return result;
-      }
-    }
-  } catch (e) {
-    console.warn("NetworkCalc WHOIS error, trying generic RDAP relay:", e);
-  }
-
-  // Source 3: rdap.org generic relay fallback
-  try {
-    const res = await fetchWithTimeout(`https://rdap.org/domain/${domain}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.events && Array.isArray(data.events)) {
-        const regEvent = data.events.find(e => e.eventAction === "registration");
-        const expEvent = data.events.find(e => e.eventAction === "expiration");
-        if (regEvent && regEvent.eventDate) {
-          result.created = regEvent.eventDate;
-          const dt = new Date(regEvent.eventDate);
-          if (!isNaN(dt.getTime())) {
-            result.ageDays = Math.floor(Math.abs(Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
-          }
-        }
-        if (expEvent && expEvent.eventDate) result.expires = expEvent.eventDate;
-      }
-      if (data.entities && Array.isArray(data.entities)) {
-        const regEntity = data.entities.find(e => e.roles && e.roles.includes("registrar"));
-        if (regEntity) {
-          const fnProp = regEntity.vcardArray?.[1]?.find(p => p[0] === "fn");
-          if (fnProp && fnProp[3]) result.registrar = fnProp[3];
-          else if (regEntity.handle) result.registrar = regEntity.handle;
-        }
-      }
-    }
-  } catch (e) {
-    console.warn("rdap.org relay error:", e);
-  }
-
-  return result;
-}
-
-// RIPE NCC Network & ASN Query
-async function queryRIPE(ip) {
-  const bgp = { asn: null, asName: null, prefix: null };
-  try {
-    const netRes = await fetch(`https://stat.ripe.net/data/network-info/data.json?resource=${ip}`);
-    if (netRes.ok) {
-      const netData = await netRes.json();
-      if (netData.data && netData.data.asns && netData.data.asns.length > 0) {
-        bgp.asn = netData.data.asns[0];
-        bgp.prefix = netData.data.prefix;
-        
-        // Lookup AS Name
-        const asRes = await fetch(`https://stat.ripe.net/data/as-overview/data.json?resource=${bgp.asn}`);
-        if (asRes.ok) {
-          const asData = await asRes.json();
-          bgp.asName = asData.data?.holder || null;
-        }
-      }
-    }
-  } catch {}
-  return bgp;
-}
-
-// ==============================================================================
-// URLSCAN.IO API INTEGRATION
+// API KEYS MANAGEMENT (LOCALSTORAGE PRIVATE)
 // ==============================================================================
 function getUrlscanApiKey() {
   return (localStorage.getItem("tw_urlscan_api_key") || "").trim();
@@ -688,62 +184,62 @@ function saveApiKeys(urlscanKey, vtKey) {
     localStorage.removeItem("tw_vt_api_key");
   }
 
-  updateUrlscanKeyUI();
+  updateKeyUI();
   showToast("API keys saved safely in browser localStorage!");
 }
 
 function clearApiKeys() {
   localStorage.removeItem("tw_urlscan_api_key");
   localStorage.removeItem("tw_vt_api_key");
-  updateUrlscanKeyUI();
+  updateKeyUI();
   showToast("API keys cleared from browser.");
 }
 
-function updateUrlscanKeyUI() {
+function updateKeyUI() {
   const urlscanKey = getUrlscanApiKey();
   const vtKey = getVTApiKey();
 
-  // 1. urlscan.io field
+  // 1. urlscan status in modal
   if (urlscanKey) {
     const masked = urlscanKey.length > 8 ? `${urlscanKey.slice(0, 4)}••••${urlscanKey.slice(-4)}` : "••••••••";
     if (urlscanKeyStatusText) {
       urlscanKeyStatusText.innerHTML = `<span style="color:#10b981;">Active</span> (<code>${masked}</code>)`;
     }
-    if (urlscanApiKeyInput) {
-      urlscanApiKeyInput.value = urlscanKey;
-    }
+    if (urlscanApiKeyInput) urlscanApiKeyInput.value = urlscanKey;
+    if (urlscanStatusPill) urlscanStatusPill.classList.add("active");
+    if (urlscanStatusText) urlscanStatusText.innerText = "Key Active";
   } else {
     if (urlscanKeyStatusText) {
-      urlscanKeyStatusText.innerHTML = `<span class="text-muted">No API Key configured (Public Quotas)</span>`;
+      urlscanKeyStatusText.innerHTML = `<span class="text-muted">No API Key configured</span>`;
     }
-    if (urlscanApiKeyInput) {
-      urlscanApiKeyInput.value = "";
-    }
+    if (urlscanApiKeyInput) urlscanApiKeyInput.value = "";
+    if (urlscanStatusPill) urlscanStatusPill.classList.remove("active");
+    if (urlscanStatusText) urlscanStatusText.innerText = "No Key Set";
   }
 
-  // 2. VirusTotal field
+  // 2. VirusTotal status in modal
   if (vtKey) {
     const masked = vtKey.length > 8 ? `${vtKey.slice(0, 4)}••••${vtKey.slice(-4)}` : "••••••••";
     if (vtKeyStatusText) {
       vtKeyStatusText.innerHTML = `<span style="color:#10b981;">Active</span> (<code>${masked}</code>)`;
     }
-    if (vtApiKeyInput) {
-      vtApiKeyInput.value = vtKey;
-    }
+    if (vtApiKeyInput) vtApiKeyInput.value = vtKey;
+    if (vtStatusPill) vtStatusPill.classList.add("active");
+    if (vtStatusText) vtStatusText.innerText = "Key Active";
   } else {
     if (vtKeyStatusText) {
-      vtKeyStatusText.innerHTML = `<span class="text-muted">No API Key configured (Standard Lookups)</span>`;
+      vtKeyStatusText.innerHTML = `<span class="text-muted">No API Key configured</span>`;
     }
-    if (vtApiKeyInput) {
-      vtApiKeyInput.value = "";
-    }
+    if (vtApiKeyInput) vtApiKeyInput.value = "";
+    if (vtStatusPill) vtStatusPill.classList.remove("active");
+    if (vtStatusText) vtStatusText.innerText = "No Key Set";
   }
 
   // 3. Header button badge
   const activeCount = (urlscanKey ? 1 : 0) + (vtKey ? 1 : 0);
   if (urlscanKeyToggleBtn) {
     if (activeCount > 0) {
-      urlscanKeyToggleBtn.innerHTML = `🔑 Keys (${activeCount}) <span style="color:#10b981;">●</span>`;
+      urlscanKeyToggleBtn.innerHTML = `🔑 Keys (${activeCount}/2) <span style="color:#10b981;">●</span>`;
       urlscanKeyToggleBtn.classList.add("btn-key-active");
     } else {
       urlscanKeyToggleBtn.innerHTML = `🔑 API Keys`;
@@ -752,22 +248,375 @@ function updateUrlscanKeyUI() {
   }
 }
 
-// urlscan.io Search API Query
-async function queryUrlscan(domain) {
-  const result = {
-    scansFound: 0,
-    latestUrl: null,
-    screenshotUrl: null,
-    malicious: false,
-    score: 0,
-    title: null,
-    server: null,
-    ip: null,
-    date: null,
-    categories: []
+function openUrlscanModal() {
+  if (urlscanModal) {
+    if (urlscanApiKeyInput) urlscanApiKeyInput.value = getUrlscanApiKey();
+    if (vtApiKeyInput) vtApiKeyInput.value = getVTApiKey();
+    updateKeyUI();
+    urlscanModal.style.display = "flex";
+  }
+}
+
+function closeUrlscanModal() {
+  if (urlscanModal) {
+    urlscanModal.style.display = "none";
+  }
+}
+
+// ==============================================================================
+// EVENT LISTENERS
+// ==============================================================================
+function setupEventListeners() {
+  investigateForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const raw = targetInput.value.trim();
+    if (raw) runInvestigation(raw);
+  });
+
+  pasteBtn.addEventListener("click", async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      targetInput.value = text.trim();
+      targetInput.focus();
+    } catch {
+      showToast("Clipboard read blocked. Paste manually (Cmd+V).");
+    }
+  });
+
+  quickDemoBtn.addEventListener("click", () => {
+    targetInput.value = "thoughtworks-careers.online";
+    loadDemoInvestigation("thoughtworks-careers.online");
+  });
+
+  resetBtn.addEventListener("click", () => {
+    targetInput.value = "";
+    resultsWrapper.style.display = "none";
+    currentIntel = null;
+  });
+
+  copyTakedownBtn.addEventListener("click", () => {
+    if (!takedownTextarea.value) return;
+    navigator.clipboard.writeText(takedownTextarea.value);
+    showToast("Takedown notice copied to clipboard!");
+  });
+
+  downloadReportBtn.addEventListener("click", () => {
+    if (!currentIntel) return;
+    downloadFile(`TW-Report-${currentIntel.domain}.md`, generateMarkdownReport(currentIntel), "text/markdown");
+  });
+
+  downloadJsonBtn.addEventListener("click", () => {
+    if (!currentIntel) return;
+    downloadFile(`TW-Intel-${currentIntel.domain}.json`, JSON.stringify(currentIntel, null, 2), "application/json");
+  });
+
+  // Modal events
+  if (urlscanKeyToggleBtn) urlscanKeyToggleBtn.addEventListener("click", openUrlscanModal);
+  if (configKeysQuickLink) configKeysQuickLink.addEventListener("click", openUrlscanModal);
+  if (closeUrlscanModalBtn) closeUrlscanModalBtn.addEventListener("click", closeUrlscanModal);
+  if (urlscanModal) {
+    urlscanModal.addEventListener("click", (e) => {
+      if (e.target === urlscanModal) closeUrlscanModal();
+    });
+  }
+
+  if (saveUrlscanKeyBtn) {
+    saveUrlscanKeyBtn.addEventListener("click", () => {
+      const uKey = urlscanApiKeyInput ? urlscanApiKeyInput.value : "";
+      const vKey = vtApiKeyInput ? vtApiKeyInput.value : "";
+      saveApiKeys(uKey, vKey);
+      closeUrlscanModal();
+    });
+  }
+
+  if (copyTeamLinkBtn) {
+    copyTeamLinkBtn.addEventListener("click", () => {
+      const uKey = getUrlscanApiKey();
+      const vKey = getVTApiKey();
+      if (!uKey && !vKey) {
+        showToast("Enter and save at least one API key first.");
+        return;
+      }
+      const payload = btoa(JSON.stringify({ urlscan: uKey, vt: vKey }));
+      const link = `${window.location.origin}${window.location.pathname}#config=${payload}`;
+      navigator.clipboard.writeText(link);
+      showToast("🔗 Team 1-click link copied! Share via private Slack/Chat.");
+    });
+  }
+
+  if (clearUrlscanKeyBtn) {
+    clearUrlscanKeyBtn.addEventListener("click", () => {
+      clearApiKeys();
+      closeUrlscanModal();
+    });
+  }
+
+  // urlscan live submit button
+  if (urlscanSubmitLiveBtn) {
+    urlscanSubmitLiveBtn.addEventListener("click", () => {
+      if (currentIntel && currentIntel.domain) {
+        submitUrlscanScan(currentIntel.domain);
+      }
+    });
+  }
+
+  if (triggerScanScreenshotBtn) {
+    triggerScanScreenshotBtn.addEventListener("click", () => {
+      if (currentIntel && currentIntel.domain) {
+        submitUrlscanScan(currentIntel.domain);
+      }
+    });
+  }
+
+  // Memory Drawer events
+  historyToggleBtn.addEventListener("click", openHistoryDrawer);
+  closeDrawerBtn.addEventListener("click", closeHistoryDrawer);
+  drawerOverlay.addEventListener("click", closeHistoryDrawer);
+  exportMemoryBtn.addEventListener("click", exportAllMemory);
+  clearMemoryBtn.addEventListener("click", clearMemory);
+}
+
+// ==============================================================================
+// TARGET NORMALIZATION & DEFANGING
+// ==============================================================================
+function normalizeTarget(raw) {
+  let clean = raw.trim();
+  clean = clean.replace(/^hxxps:\/\//i, "https://").replace(/^hxxp:\/\//i, "http://");
+  clean = clean.replace(/\[\.\]/g, ".").replace(/\(\.\)/g, ".");
+  clean = clean.replace(/\[:\/\/\]/g, "://").replace(/\(:\/\/\)/g, "://");
+
+  let domain = "";
+  if (clean.includes("://")) {
+    try {
+      const parsed = new URL(clean);
+      domain = parsed.hostname.toLowerCase();
+    } catch {
+      domain = clean.split("/")[0].toLowerCase();
+    }
+  } else {
+    domain = clean.split("/")[0].split(":")[0].toLowerCase();
+  }
+
+  domain = domain.replace(/^\.+|\.+$/g, "");
+  const defangedDomain = domain.replace(/\./g, "[.]");
+
+  return { domain, defangedDomain };
+}
+
+function levenshteinDistance(s1, s2) {
+  const m = s1.length;
+  const n = s2.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (s1[i - 1] === s2[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+  }
+  return dp[m][n];
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// ==============================================================================
+// DUAL-ENGINE INVESTIGATION CONTROLLER
+// ==============================================================================
+async function runInvestigation(rawInput) {
+  const { domain, defangedDomain } = normalizeTarget(rawInput);
+  if (!domain || !domain.includes(".")) {
+    showToast("Invalid domain format! Please enter a valid domain.");
+    return;
+  }
+
+  setLoading(true, `Querying VirusTotal & urlscan.io APIs for ${defangedDomain}...`);
+
+  const vtKey = getVTApiKey();
+  const urlscanKey = getUrlscanApiKey();
+
+  const intel = {
+    timestamp: new Date().toISOString(),
+    domain,
+    defangedDomain,
+    vt: {
+      configured: !!vtKey,
+      available: false,
+      corsBlocked: false,
+      malicious: 0,
+      suspicious: 0,
+      harmless: 0,
+      undetected: 0,
+      totalEngines: 0,
+      reputation: null,
+      categories: [],
+      tags: [],
+      flaggingVendors: [],
+      lastDnsRecords: [],
+      guiUrl: `https://www.virustotal.com/gui/domain/${encodeURIComponent(domain)}`
+    },
+    urlscan: {
+      configured: !!urlscanKey,
+      available: false,
+      corsBlocked: false,
+      scansFound: 0,
+      uuid: null,
+      reportUrl: `https://urlscan.io/search/#domain%3A${encodeURIComponent(domain)}`,
+      screenshotUrl: null,
+      title: null,
+      effectiveUrl: null,
+      server: null,
+      ip: null,
+      country: null,
+      asn: null,
+      asnname: null,
+      verdictScore: 0,
+      malicious: false
+    },
+    indicators: [],
+    riskScore: 0,
+    verdict: "ANALYZING"
   };
 
-  const apiKey = getUrlscanApiKey();
+  try {
+    // Dispatch parallel requests to both threat intelligence engines
+    const [vtResult, urlscanResult] = await Promise.all([
+      queryVirusTotal(domain, vtKey),
+      queryUrlscan(domain, urlscanKey)
+    ]);
+
+    intel.vt = { ...intel.vt, ...vtResult };
+    intel.urlscan = { ...intel.urlscan, ...urlscanResult };
+
+    // Calculate Brand Impersonation & Security Risk
+    const { score, indicators, verdict } = calculateRisk(intel);
+    intel.riskScore = score;
+    intel.indicators = indicators;
+    intel.verdict = verdict;
+
+    saveToMemory(intel);
+    currentIntel = intel;
+    renderResults(intel);
+  } catch (err) {
+    console.error("Investigation error:", err);
+    showToast("Reconnaissance encountered an error. Check console.");
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ==============================================================================
+// ENGINE 1: VIRUSTOTAL REST API V3 QUERY
+// ==============================================================================
+async function queryVirusTotal(domain, apiKey) {
+  const result = {
+    configured: !!apiKey,
+    available: false,
+    corsBlocked: false,
+    malicious: 0,
+    suspicious: 0,
+    harmless: 0,
+    undetected: 0,
+    totalEngines: 0,
+    reputation: 0,
+    categories: [],
+    tags: [],
+    flaggingVendors: [],
+    guiUrl: `https://www.virustotal.com/gui/domain/${encodeURIComponent(domain)}`
+  };
+
+  if (!apiKey) {
+    return result;
+  }
+
+  try {
+    const res = await fetch(`https://www.virustotal.com/api/v3/domains/${encodeURIComponent(domain)}`, {
+      method: "GET",
+      headers: {
+        "x-apikey": apiKey,
+        "Accept": "application/json"
+      }
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      const attrs = json.data?.attributes || {};
+      const stats = attrs.last_analysis_stats || {};
+
+      result.available = true;
+      result.malicious = stats.malicious || 0;
+      result.suspicious = stats.suspicious || 0;
+      result.harmless = stats.harmless || 0;
+      result.undetected = stats.undetected || 0;
+      result.totalEngines = result.malicious + result.suspicious + result.harmless + result.undetected;
+      result.reputation = attrs.reputation !== undefined ? attrs.reputation : 0;
+      result.tags = attrs.tags || [];
+
+      // Extract unique categories
+      const rawCategories = attrs.categories || {};
+      result.categories = Array.from(new Set(Object.values(rawCategories))).slice(0, 8);
+
+      // Extract flagging vendors
+      const analysisResults = attrs.last_analysis_results || {};
+      const flagging = [];
+      for (const [engineName, details] of Object.entries(analysisResults)) {
+        if (details.category === "malicious" || details.category === "suspicious") {
+          flagging.push({
+            name: engineName,
+            category: details.category,
+            result: details.result || details.category
+          });
+        }
+      }
+      result.flaggingVendors = flagging;
+    } else {
+      console.warn("VirusTotal API returned non-OK status:", res.status);
+    }
+  } catch (err) {
+    // If fetch failed due to browser CORS restriction
+    console.warn("VirusTotal in-browser direct query blocked by CORS:", err);
+    result.corsBlocked = true;
+  }
+
+  return result;
+}
+
+// ==============================================================================
+// ENGINE 2: URLSCAN.IO SEARCH & SUBMISSION API QUERY
+// ==============================================================================
+async function queryUrlscan(domain, apiKey) {
+  const result = {
+    configured: !!apiKey,
+    available: false,
+    corsBlocked: false,
+    scansFound: 0,
+    uuid: null,
+    reportUrl: `https://urlscan.io/search/#domain%3A${encodeURIComponent(domain)}`,
+    screenshotUrl: null,
+    title: null,
+    effectiveUrl: null,
+    server: null,
+    ip: null,
+    country: null,
+    asn: null,
+    asnname: null,
+    verdictScore: 0,
+    malicious: false
+  };
+
   const headers = { "Accept": "application/json" };
   if (apiKey) {
     headers["API-Key"] = apiKey;
@@ -775,53 +624,62 @@ async function queryUrlscan(domain) {
 
   try {
     const res = await fetch(`https://urlscan.io/api/v1/search/?q=domain:${encodeURIComponent(domain)}&size=5`, {
+      method: "GET",
       headers,
       mode: "cors"
     });
 
     if (res.ok) {
       const data = await res.json();
+      result.available = true;
       result.scansFound = data.total || 0;
+
       if (data.results && data.results.length > 0) {
         const first = data.results[0];
-        result.latestUrl = first.result;
-        result.screenshotUrl = first.screenshot;
-        result.date = (first.task?.time || "").slice(0, 10);
-        result.title = first.page?.title || null;
-        result.server = first.page?.server || null;
-        result.ip = first.page?.ip || null;
+        result.uuid = first._id || null;
+        result.reportUrl = first.result || `https://urlscan.io/result/${first._id}/`;
+        result.screenshotUrl = first.screenshot || (first._id ? `https://urlscan.io/screenshots/${first._id}.png` : null);
+
+        const page = first.page || {};
+        result.title = page.title || null;
+        result.effectiveUrl = page.url || first.task?.url || null;
+        result.server = page.server || null;
+        result.ip = page.ip || null;
+        result.country = page.country || null;
+        result.asn = page.asn || null;
+        result.asnname = page.asnname || null;
 
         const verdicts = first.verdicts?.overall || {};
         result.malicious = !!verdicts.malicious;
-        result.score = verdicts.score || 0;
-        result.categories = verdicts.categories || [];
+        result.verdictScore = verdicts.score || 0;
       }
     }
   } catch (err) {
-    console.warn("urlscan.io API search query failed or blocked by CORS:", err);
+    console.warn("urlscan.io Search query blocked by CORS or network:", err);
+    result.corsBlocked = true;
   }
 
   return result;
 }
 
-// urlscan.io Submission API (Live Scan)
+// urlscan.io Live Scan Submission
 async function submitUrlscanScan(domain) {
   if (!domain) return;
   const apiKey = getUrlscanApiKey();
 
   if (!apiKey) {
     openUrlscanModal();
-    showToast("Please save your urlscan.io API Key to submit scans.");
+    showToast("Please save your urlscan.io API Key to submit live scans.");
     return;
   }
 
-  if (!urlscanSubmitBtn || !urlscanSubmitMsg) return;
+  if (!urlscanSubmitLiveBtn || !urlscanLiveSubmitStatus) return;
 
   const targetUrl = domain.startsWith("http") ? domain : `https://${domain}`;
-  urlscanSubmitBtn.disabled = true;
-  urlscanSubmitBtn.innerText = "⏳ Submitting...";
-  urlscanSubmitMsg.style.display = "block";
-  urlscanSubmitMsg.innerHTML = `<span class="spinner" style="display:inline-block; vertical-align:middle; width:12px; height:12px; margin-right:4px;"></span> Dispatching scan request to urlscan.io API...`;
+  urlscanSubmitLiveBtn.disabled = true;
+  urlscanSubmitLiveBtn.innerText = "⏳ Submitting...";
+  urlscanLiveSubmitStatus.style.display = "block";
+  urlscanLiveSubmitStatus.innerHTML = `<span class="spinner" style="display:inline-block; vertical-align:middle; width:12px; height:12px; margin-right:4px;"></span> Dispatching scan request to urlscan.io API...`;
 
   try {
     const res = await fetch("https://urlscan.io/api/v1/scan/", {
@@ -839,22 +697,62 @@ async function submitUrlscanScan(domain) {
 
     const data = await res.json();
     if (res.ok && data.result) {
-      urlscanSubmitMsg.innerHTML = `✅ Scan queued! <a href="${data.result}" target="_blank" class="text-cyan font-bold">Open Live Scan Report ↗</a> (UUID: ${data.uuid ? data.uuid.slice(0, 8) : 'done'}...)`;
+      const scanUuid = data.uuid;
+      const reportLink = data.result;
+      const shotUrl = `https://urlscan.io/screenshots/${scanUuid}.png`;
+
+      urlscanLiveSubmitStatus.innerHTML = `✅ <strong>Scan queued successfully!</strong><br><a href="${reportLink}" target="_blank" class="text-cyan font-bold">Open urlscan.io Live Report ↗</a> (UUID: <code>${scanUuid.slice(0, 8)}...</code>)<br><span class="dim-text">Landing page screenshot will load automatically in 10-15 seconds.</span>`;
       showToast("Scan queued on urlscan.io!");
+
+      // Update current card view immediately
+      if (currentIntel && currentIntel.urlscan) {
+        currentIntel.urlscan.uuid = scanUuid;
+        currentIntel.urlscan.reportUrl = reportLink;
+        currentIntel.urlscan.screenshotUrl = shotUrl;
+      }
+
+      // Display screenshot container with polling
+      if (screenshotPlaceholder) screenshotPlaceholder.style.display = "none";
+      if (screenshotLink) {
+        screenshotLink.style.display = "block";
+        screenshotLink.href = reportLink;
+      }
+      if (screenshotImg) {
+        screenshotImg.src = shotUrl;
+        screenshotImg.alt = "Generating live landing page screenshot...";
+      }
+
+      // Poll screenshot image
+      let attempts = 0;
+      const pollTimer = setInterval(() => {
+        attempts++;
+        if (attempts > 6) {
+          clearInterval(pollTimer);
+          return;
+        }
+        const tester = new Image();
+        tester.onload = () => {
+          if (screenshotImg) screenshotImg.src = shotUrl + "?t=" + Date.now();
+          if (screenshotStatus) screenshotStatus.innerText = "Captured Just Now";
+          clearInterval(pollTimer);
+        };
+        tester.src = shotUrl;
+      }, 5000);
+
     } else {
-      const errMsg = data.message || data.description || "Scan submission rejected";
-      urlscanSubmitMsg.innerHTML = `⚠️ Error: ${escapeHtml(errMsg)}`;
+      const errMsg = data.message || data.description || "Scan submission rejected by API";
+      urlscanLiveSubmitStatus.innerHTML = `⚠️ Error: ${escapeHtml(errMsg)}`;
     }
   } catch (err) {
-    urlscanSubmitMsg.innerHTML = `⚠️ Submission error (${escapeHtml(err.message)}). <a href="https://urlscan.io/search/#domain%3A${encodeURIComponent(domain)}" target="_blank" class="text-cyan">Open urlscan.io directly ↗</a>`;
+    urlscanLiveSubmitStatus.innerHTML = `⚠️ Scan dispatch error (${escapeHtml(err.message)}). <a href="https://urlscan.io/search/#domain%3A${encodeURIComponent(domain)}" target="_blank" class="text-cyan">Open urlscan.io manually ↗</a>`;
   } finally {
-    urlscanSubmitBtn.disabled = false;
-    urlscanSubmitBtn.innerText = "⚡ Submit Scan (API)";
+    urlscanSubmitLiveBtn.disabled = false;
+    urlscanSubmitLiveBtn.innerText = "⚡ Dispatch Live Scan (API)";
   }
 }
 
 // ==============================================================================
-// HEURISTIC IMPERSONATION RISK CALCULATION
+// HEURISTIC IMPERSONATION & SECURITY RISK CALCULATION
 // ==============================================================================
 function calculateRisk(intel) {
   const domain = intel.domain.toLowerCase();
@@ -871,7 +769,7 @@ function calculateRisk(intel) {
   let score = 0;
   const indicators = [];
 
-  // 1. Direct or Typosquatted Brand Inclusion
+  // 1. Target Brand Match
   const isExactThoughtworks = domain.includes("thoughtworks");
   const normDomain = domain.replace(/0/g, "o").replace(/1/g, "l").replace(/vv/g, "w");
   const isHomoglyph = (normDomain.includes("thoughtworks") && !isExactThoughtworks) || 
@@ -885,7 +783,7 @@ function calculateRisk(intel) {
     indicators.push("Typosquatting / Homoglyph Attack: Visually mimics 'thoughtworks'");
   }
 
-  // 2. High-Risk Phishing / Impersonation Keywords
+  // 2. High-Risk Phishing Keywords
   const matchedKeywords = IMPERSONATION_KEYWORDS.filter(kw => domain.includes(kw));
   if (matchedKeywords.length > 0) {
     const kwScore = Math.min(30, matchedKeywords.length * 12);
@@ -899,46 +797,34 @@ function calculateRisk(intel) {
     indicators.push(`High-Abuse TLD: Domain uses .${tld} (frequent in disposable phishing campaigns)`);
   }
 
-  // 4. Domain Age Analysis
-  if (intel.rdap.ageDays !== null) {
-    if (intel.rdap.ageDays < 14) {
-      score += 30;
-      indicators.push(`Critical Age Flag: Domain registered only ${intel.rdap.ageDays} days ago`);
-    } else if (intel.rdap.ageDays < 60) {
-      score += 20;
-      indicators.push(`Newly Registered Domain: Registered ${intel.rdap.ageDays} days ago`);
-    } else if (intel.rdap.ageDays < 180) {
+  // 4. VirusTotal Threat Engine Detections
+  if (intel.vt && intel.vt.available) {
+    if (intel.vt.malicious > 0) {
+      const vtMalScore = Math.min(45, intel.vt.malicious * 15);
+      score += vtMalScore;
+      indicators.push(`VirusTotal Multi-Engine Detections: Flagged MALICIOUS by ${intel.vt.malicious} security vendor(s)`);
+    }
+    if (intel.vt.suspicious > 0) {
       score += 10;
-      indicators.push(`Recent Domain Registration: Registered ${intel.rdap.ageDays} days ago`);
+      indicators.push(`VirusTotal Suspicious Flags: Flagged SUSPICIOUS by ${intel.vt.suspicious} vendor(s)`);
+    }
+    if (intel.vt.reputation !== null && intel.vt.reputation < 0) {
+      score += 15;
+      indicators.push(`VirusTotal Negative Reputation: Community score is ${intel.vt.reputation}`);
     }
   }
 
-  // 5. MX Records (Active Email Weaponization)
-  if (intel.dns.mx.length > 0) {
-    score += 15;
-    indicators.push(`Active Email Infrastructure: ${intel.dns.mx.length} MX record(s) active (capable of email phishing)`);
-  } else {
-    indicators.push("No MX Records: Domain currently not accepting inbound email");
-  }
-
-  // 6. DMARC / Spoofing Posture
-  if (!intel.dns.dmarc) {
-    score += 10;
-    indicators.push("Missing DMARC Protection: Domain can be forged in spoofed email headers");
-  } else if (intel.dns.dmarc.toLowerCase().includes("p=none")) {
-    score += 5;
-    indicators.push("Weak DMARC Policy: Configured with 'p=none' (monitoring mode, no spoofing rejection)");
-  }
-
-  // 7. urlscan.io Sandbox Threat Verdicts
-  if (intel.urlscan) {
-    if (intel.urlscan.malicious || intel.urlscan.score >= 50) {
+  // 5. urlscan.io Sandbox & Landing Page Content Signals
+  if (intel.urlscan && intel.urlscan.available) {
+    if (intel.urlscan.malicious || intel.urlscan.verdictScore >= 50) {
       score += 35;
-      indicators.push(`urlscan.io Threat Verdict: Domain carries MALICIOUS verdict (Score: ${intel.urlscan.score})`);
+      indicators.push(`urlscan.io Verdict: Carries MALICIOUS threat verdict (Score: ${intel.urlscan.verdictScore})`);
     }
+
+    // Landing Page Content Inspection: Does page title impersonate Thoughtworks?
     if (intel.urlscan.title && intel.urlscan.title.toLowerCase().includes("thoughtworks")) {
-      score += 25;
-      indicators.push(`Brand Hijacking in Page Content: urlscan.io landing title mentions 'Thoughtworks' ("${intel.urlscan.title}")`);
+      score += 30;
+      indicators.push(`Landing Page Brand Spoofing: Page <title> mimics 'Thoughtworks' ("${intel.urlscan.title}")`);
     }
   }
 
@@ -946,20 +832,20 @@ function calculateRisk(intel) {
   let verdict = "BENIGN / LOW RISK";
   if (finalScore >= 80) verdict = "CRITICAL RISK (ACTIVE THOUGHTWORKS IMPERSONATION)";
   else if (finalScore >= 60) verdict = "HIGH RISK (SUSPICIOUS BRAND SPOOFING)";
-  else if (finalScore >= 40) verdict = "MEDIUM RISK (REQUIRES ACTIVE MONITORING)";
-  else if (finalScore >= 20) verdict = "LOW RISK (UNCONFIRMED / MINIMAL)";
+  else if (finalScore >= 40) verdict = "MEDIUM RISK (SUSPICIOUS ARTIFACTS)";
+  else if (finalScore >= 20) verdict = "LOW RISK (MINIMAL THREAT INDICATORS)";
 
   return { score: finalScore, indicators, verdict };
 }
 
 // ==============================================================================
-// RENDER INVESTIGATION RESULTS
+// RENDER DUAL-ENGINE RESULTS
 // ==============================================================================
 function renderResults(intel) {
   resultsWrapper.style.display = "block";
   resultsWrapper.scrollIntoView({ behavior: "smooth" });
 
-  // 1. Gauge & Score
+  // 1. Impersonation Risk Score & Gauge
   scoreValue.innerText = intel.riskScore;
   const circumference = 314;
   const offset = circumference - (intel.riskScore / 100) * circumference;
@@ -984,151 +870,223 @@ function renderResults(intel) {
   }
   verdictBadge.innerText = intel.verdict;
 
-  // 2. Targets & Flags
+  // Target Badges & Threat Signals
   displayDomain.innerText = intel.domain;
   displayDefanged.innerText = intel.defangedDomain;
   displayTimestamp.innerText = new Date(intel.timestamp).toLocaleTimeString();
+  impersonationFlagsList.innerHTML = intel.indicators.map(ind => `<li>${escapeHtml(ind)}</li>`).join("");
 
-  impersonationFlagsList.innerHTML = intel.indicators.map(ind => `<li>${ind}</li>`).join("");
+  // ============================================================================
+  // 2. RENDER VIRUSTOTAL INTELLIGENCE CARD
+  // ============================================================================
+  const vt = intel.vt;
+  vtDeepLink.href = vt.guiUrl;
 
-  // 3. DNS & Routing
-  dnsARecords.innerText = intel.dns.a.length > 0 ? intel.dns.a.join(", ") : "No A records resolved";
-  dnsAAAARecords.innerText = intel.dns.aaaa.length > 0 ? intel.dns.aaaa.join(", ") : "None";
-  bgpAsn.innerText = intel.bgp.asn ? `AS${intel.bgp.asn} (${intel.bgp.asName || 'Unknown'})` : "N/A";
-  bgpPrefix.innerText = intel.bgp.prefix || "N/A";
-  dnsNSRecords.innerText = intel.dns.ns.length > 0 ? intel.dns.ns.join(", ") : "None";
+  if (vt.available) {
+    vtCorsNotice.style.display = "none";
+    vtRatioText.innerText = `${vt.malicious} / ${vt.totalEngines || 70}`;
+    vtCountMalicious.innerText = vt.malicious;
+    vtCountSuspicious.innerText = vt.suspicious;
+    vtCountHarmless.innerText = vt.harmless;
+    vtReputation.innerText = vt.reputation !== null ? vt.reputation : "0";
 
-  // 4. Email Weaponization
-  emailMXRecords.innerText = intel.dns.mx.length > 0 ? intel.dns.mx.join(" | ") : "None";
-  if (intel.dns.mx.length > 0) {
-    emailThreatStatus.innerHTML = intel.riskScore > 30 
-      ? `<span class="text-red">ACTIVE PHISHING CAPABILITY</span>` 
-      : `<span class="text-green">Corporate Mail Exchangers</span>`;
-  } else {
-    emailThreatStatus.innerHTML = `<span class="text-muted">No Inbound Email</span>`;
-  }
-  emailSPFRecord.innerText = intel.dns.spf || "No SPF record found";
-  emailDMARCStatus.innerHTML = intel.dns.dmarc 
-    ? `<span class="text-cyan">${intel.dns.dmarc}</span>` 
-    : `<span class="text-red">MISSING (Vulnerable to spoofing)</span>`;
+    const total = Math.max(1, vt.totalEngines);
+    vtBarMalicious.style.width = `${(vt.malicious / total) * 100}%`;
+    vtBarSuspicious.style.width = `${(vt.suspicious / total) * 100}%`;
+    vtBarHarmless.style.width = `${(vt.harmless / total) * 100}%`;
+    vtBarUndetected.style.width = `${(vt.undetected / total) * 100}%`;
 
-  // 5. RDAP & Registration
-  if (intel.rdap.registrar && intel.rdap.registrar !== "Unavailable (Check WHOIS link)") {
-    rdapRegistrar.innerText = intel.rdap.registrar;
-  } else {
-    rdapRegistrar.innerHTML = `<a href="https://who.is/whois/${intel.domain}" target="_blank" class="text-cyan">Query Who.is ↗</a>`;
-  }
-
-  if (intel.rdap.created) {
-    rdapCreated.innerText = intel.rdap.created.slice(0, 10);
-  } else {
-    rdapCreated.innerHTML = `<a href="https://lookup.icann.org/en/lookup?q=${encodeURIComponent(intel.domain)}" target="_blank" class="text-cyan">Query ICANN ↗</a>`;
-  }
-
-  if (intel.rdap.ageDays !== null && !isNaN(intel.rdap.ageDays)) {
-    let ageStr = `${intel.rdap.ageDays} days`;
-    if (intel.rdap.ageDays < 30) {
-      ageStr += " ⚠️ [CRITICAL: < 30 DAYS]";
-      rdapAge.className = "row-value mono text-red";
-    } else if (intel.rdap.ageDays < 90) {
-      ageStr += " ⚠️ [NEW DOMAIN]";
-      rdapAge.className = "row-value mono text-yellow";
+    if (vt.malicious > 0) {
+      vtVerdictBadge.className = "badge-engine-status text-red font-bold";
+      vtVerdictBadge.innerText = `🚨 ${vt.malicious} VENDOR FLAGS`;
     } else {
-      rdapAge.className = "row-value mono text-cyan";
+      vtVerdictBadge.className = "badge-engine-status text-green font-bold";
+      vtVerdictBadge.innerText = "🛡️ CLEAN";
     }
-    rdapAge.innerText = ageStr;
+
+    // Categories & Tags
+    const tags = [...(vt.tags || []), ...(vt.categories || [])];
+    if (tags.length > 0) {
+      vtTagsList.innerHTML = tags.map(t => `<span class="chip-tag">${escapeHtml(t)}</span>`).join("");
+    } else {
+      vtTagsList.innerHTML = `<span class="dim-text">No category tags assigned</span>`;
+    }
+
+    // Flagging Vendors
+    if (vt.flaggingVendors && vt.flaggingVendors.length > 0) {
+      vtVendorsList.innerHTML = vt.flaggingVendors.map(v => `
+        <div class="vendor-chip">
+          <span class="vendor-name">${escapeHtml(v.name)}</span>
+          <span class="vendor-result">${escapeHtml(v.result)}</span>
+        </div>
+      `).join("");
+    } else {
+      vtVendorsList.innerHTML = `<span class="text-green text-sm">No security engines currently flag this target as malicious.</span>`;
+    }
+
   } else {
-    rdapAge.innerText = "Unknown";
-    rdapAge.className = "row-value mono text-muted";
+    // If not available or blocked by CORS
+    if (vt.corsBlocked) {
+      vtCorsNotice.style.display = "block";
+      vtVerdictBadge.className = "badge-engine-status text-yellow font-bold";
+      vtVerdictBadge.innerText = "API READY (CORS RESTRICTED)";
+    } else if (!vt.configured) {
+      vtVerdictBadge.className = "badge-engine-status text-muted";
+      vtVerdictBadge.innerText = "NO API KEY";
+    } else {
+      vtVerdictBadge.className = "badge-engine-status text-muted";
+      vtVerdictBadge.innerText = "QUEUED / UNRATED";
+    }
+
+    vtRatioText.innerText = "-- / --";
+    vtCountMalicious.innerText = "--";
+    vtCountSuspicious.innerText = "--";
+    vtCountHarmless.innerText = "--";
+    vtReputation.innerText = "--";
+    vtBarMalicious.style.width = "0%";
+    vtBarSuspicious.style.width = "0%";
+    vtBarHarmless.style.width = "0%";
+    vtBarUndetected.style.width = "100%";
+    vtTagsList.innerHTML = `<span class="dim-text">Open VirusTotal dossier to view full vendor graph.</span>`;
+    vtVendorsList.innerHTML = `<span class="dim-text">Real-time scan details ready via direct link below.</span>`;
   }
 
-  if (intel.rdap.expires) {
-    rdapExpires.innerText = intel.rdap.expires.slice(0, 10);
+  // ============================================================================
+  // 3. RENDER URLSCAN.IO & LANDING PAGE CARD
+  // ============================================================================
+  const us = intel.urlscan;
+  urlscanDeepLink.href = us.reportUrl;
+
+  if (us.screenshotUrl) {
+    if (screenshotPlaceholder) screenshotPlaceholder.style.display = "none";
+    if (screenshotLink) {
+      screenshotLink.style.display = "block";
+      screenshotLink.href = us.reportUrl;
+    }
+    if (screenshotImg) {
+      screenshotImg.src = us.screenshotUrl;
+      screenshotImg.alt = `Landing page snapshot for ${intel.domain}`;
+    }
+    if (screenshotStatus) {
+      screenshotStatus.innerText = "Snapshot Active";
+      screenshotStatus.className = "screenshot-tag text-green";
+    }
   } else {
-    rdapExpires.innerText = "Unknown";
+    if (screenshotPlaceholder) screenshotPlaceholder.style.display = "flex";
+    if (screenshotLink) screenshotLink.style.display = "none";
+    if (screenshotStatus) {
+      screenshotStatus.innerText = "Pending Capture";
+      screenshotStatus.className = "screenshot-tag text-muted";
+    }
   }
 
-  // 6. Sandbox & SSL (urlscan.io & crt.sh)
-  urlscanCount.innerText = `${intel.urlscan.scansFound} scan(s) on record`;
+  landingTitle.innerText = us.title || "No page title recorded";
+  landingTitle.title = us.title || "";
+  landingEffectiveUrl.innerText = us.effectiveUrl || `https://${intel.domain}`;
+  landingEffectiveUrl.title = us.effectiveUrl || "";
+
+  landingIpCountry.innerText = us.ip 
+    ? `${us.ip} ${us.country ? `[${us.country}]` : ''}` 
+    : "Unresolved";
+
+  landingAsn.innerText = us.asn 
+    ? `${us.asn} (${us.asnname || 'Unknown'})` 
+    : "No ASN on record";
+
+  landingServer.innerText = us.server || "Not disclosed";
   
-  if (intel.urlscan.scansFound > 0) {
-    if (urlscanVerdictRow && urlscanVerdict) {
-      urlscanVerdictRow.style.display = "flex";
-      if (intel.urlscan.malicious || intel.urlscan.score >= 50) {
-        urlscanVerdict.innerHTML = `<span class="badge-verdict" style="background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; font-size:0.75rem; padding:0.2rem 0.5rem;">🚨 MALICIOUS (Score: ${intel.urlscan.score})</span>`;
-      } else {
-        urlscanVerdict.innerHTML = `<span class="badge-verdict" style="background:rgba(16,185,129,0.2); color:#10b981; border:1px solid #10b981; font-size:0.75rem; padding:0.2rem 0.5rem;">🛡️ Clean / Unrated (${intel.urlscan.score || 0})</span>`;
-      }
-    }
-
-    if (urlscanTitleRow && urlscanTitle) {
-      if (intel.urlscan.title) {
-        urlscanTitleRow.style.display = "flex";
-        urlscanTitle.innerText = intel.urlscan.title;
-        urlscanTitle.title = intel.urlscan.title;
-      } else {
-        urlscanTitleRow.style.display = "none";
-      }
-    }
+  if (us.verdictScore > 0 || us.malicious) {
+    landingVerdictScore.innerHTML = `<span class="text-red">Score: ${us.verdictScore} (MALICIOUS)</span>`;
+    urlscanVerdictBadge.className = "badge-engine-status text-red font-bold";
+    urlscanVerdictBadge.innerText = `🚨 SCORE: ${us.verdictScore}`;
+  } else if (us.scansFound > 0) {
+    landingVerdictScore.innerHTML = `<span class="text-green">Score: ${us.verdictScore} (CLEAN)</span>`;
+    urlscanVerdictBadge.className = "badge-engine-status text-green font-bold";
+    urlscanVerdictBadge.innerText = "🛡️ CLEAN";
   } else {
-    if (urlscanVerdictRow) urlscanVerdictRow.style.display = "none";
-    if (urlscanTitleRow) urlscanTitleRow.style.display = "none";
+    landingVerdictScore.innerText = "No prior scans";
+    urlscanVerdictBadge.className = "badge-engine-status text-muted";
+    urlscanVerdictBadge.innerText = "NO PRIOR SCANS";
   }
 
-  urlscanLink.innerHTML = intel.urlscan.latestUrl 
-    ? `<a href="${intel.urlscan.latestUrl}" target="_blank" class="text-cyan font-bold">View Latest Scan Report ↗</a>` 
-    : `<a href="https://urlscan.io/search/#domain%3A${encodeURIComponent(intel.domain)}" target="_blank" class="text-cyan">Search on urlscan.io ↗</a>`;
-    
-  urlscanScreenshot.innerHTML = intel.urlscan.screenshotUrl 
-    ? `<a href="${intel.urlscan.screenshotUrl}" target="_blank" class="text-yellow">View High-Res Snapshot ↗</a>` 
-    : `<span class="text-muted">None available</span>`;
-
-  if (urlscanThumbWrapper && urlscanThumbImg && urlscanThumbLink) {
-    if (intel.urlscan.screenshotUrl) {
-      urlscanThumbWrapper.style.display = "block";
-      urlscanThumbImg.src = intel.urlscan.screenshotUrl;
-      urlscanThumbLink.href = intel.urlscan.latestUrl || intel.urlscan.screenshotUrl;
-    } else {
-      urlscanThumbWrapper.style.display = "none";
-      urlscanThumbImg.src = "";
-    }
+  if (urlscanLiveSubmitStatus) {
+    urlscanLiveSubmitStatus.style.display = "none";
+    urlscanLiveSubmitStatus.innerHTML = "";
   }
 
-  if (urlscanSubmitMsg) {
-    urlscanSubmitMsg.style.display = "none";
-    urlscanSubmitMsg.innerHTML = "";
-  }
-
-  crtshLink.innerHTML = `<a href="https://crt.sh/?q=%25${intel.domain}" target="_blank" class="text-cyan">View crt.sh Certs ↗</a>`;
-
-  // 7. Render 13 Investigation Tools
-  const primaryIp = intel.dns.a[0] || null;
-  renderToolsLaunchpad(intel.domain, primaryIp);
-
-  // 8. Takedown Template
+  // ============================================================================
+  // 4. RENDER ABUSE TAKEDOWN NOTICE
+  // ============================================================================
   takedownTextarea.value = generateTakedownNotice(intel);
 }
 
-// Render Tools Grid (All 13 from Screenshot + extras)
-function renderToolsLaunchpad(domain, primaryIp) {
-  toolsGrid.innerHTML = TOOLS_MAP.map(tool => {
-    const url = tool.getUrl(domain, primaryIp);
-    return `
-      <a href="${url}" target="_blank" rel="noopener noreferrer" class="tool-tile">
-        <div class="tool-tile-top">
-          <span class="tool-tile-id">[${String(tool.id).padStart(2, "0")}]</span>
-          <span style="font-size: 1.1rem;">${tool.icon}</span>
-        </div>
-        <div>
-          <div class="tool-tile-name">${tool.name}</div>
-          <div class="tool-tile-category">${tool.category}</div>
-        </div>
-        <div class="tool-tile-action">
-          Open In Tool ↗
-        </div>
-      </a>
-    `;
-  }).join("");
+// ==============================================================================
+// DEMO PHISHING SIMULATION
+// ==============================================================================
+function loadDemoInvestigation(demoDomain) {
+  setLoading(true, `Simulating dual-engine threat intelligence for ${demoDomain}...`);
+
+  setTimeout(() => {
+    const intel = {
+      timestamp: new Date().toISOString(),
+      domain: demoDomain,
+      defangedDomain: demoDomain.replace(/\./g, "[.]"),
+      vt: {
+        configured: true,
+        available: true,
+        corsBlocked: false,
+        malicious: 14,
+        suspicious: 3,
+        harmless: 2,
+        undetected: 54,
+        totalEngines: 73,
+        reputation: -38,
+        categories: ["phishing", "credential theft", "suspicious brand impersonation", "recruitment scam"],
+        tags: ["phishing", "impersonation", "fake-careers", "soc-urgent"],
+        flaggingVendors: [
+          { name: "Google Safe Browsing", category: "malicious", result: "phishing" },
+          { name: "Kaspersky", category: "malicious", result: "phishing" },
+          { name: "Sophos", category: "malicious", result: "credential_stealer" },
+          { name: "Fortinet", category: "malicious", result: "phishing" },
+          { name: "BitDefender", category: "malicious", result: "malware" },
+          { name: "ESET", category: "suspicious", result: "suspicious" }
+        ],
+        guiUrl: `https://www.virustotal.com/gui/domain/${demoDomain}`
+      },
+      urlscan: {
+        configured: true,
+        available: true,
+        corsBlocked: false,
+        scansFound: 3,
+        uuid: "demo-scan-uuid",
+        reportUrl: `https://urlscan.io/search/#domain%3A${encodeURIComponent(demoDomain)}`,
+        screenshotUrl: "https://urlscan.io/screenshots/0e37e828-a9d9-45c0-ac50-1ca579b86c72.png",
+        title: "Thoughtworks Careers & Candidate Portal - Sign In",
+        effectiveUrl: `https://${demoDomain}/login?auth=candidate`,
+        server: "nginx/1.24.0 (Ubuntu)",
+        ip: "185.196.11.42",
+        country: "RU",
+        asn: "AS48282",
+        asnname: "Hostinger International Ltd",
+        verdictScore: 88,
+        malicious: true
+      },
+      indicators: [],
+      riskScore: 0,
+      verdict: "ANALYZING"
+    };
+
+    const { score, indicators, verdict } = calculateRisk(intel);
+    intel.riskScore = score;
+    intel.indicators = indicators;
+    intel.verdict = verdict;
+
+    saveToMemory(intel);
+    currentIntel = intel;
+    renderResults(intel);
+    setLoading(false);
+    showToast("⚡ Demo phish intel loaded from VirusTotal & urlscan engines!");
+  }, 400);
 }
 
 // ==============================================================================
@@ -1137,24 +1095,38 @@ function renderToolsLaunchpad(domain, primaryIp) {
 function generateTakedownNotice(intel) {
   const d = intel.domain;
   const def = intel.defangedDomain;
-  const ip = intel.dns.a[0] || "N/A";
-  const reg = intel.rdap.registrar || "Domain Registrar";
-  const asName = intel.bgp.asName || "Hosting Provider";
+  const ip = intel.urlscan?.ip || "Pending DNS Resolution";
+  const asn = intel.urlscan?.asn ? `AS${intel.urlscan.asn} (${intel.urlscan.asnname || ''})` : "Hosting Provider";
 
   let letter = `SUBJECT: URGENT: Thoughtworks Brand Impersonation & Phishing Notice - ${def}\n\n`;
-  letter += `To Abuse Team at ${reg} / ${asName},\n\n`;
-  letter += `I am writing on behalf of Thoughtworks Security & Brand Protection to report active malicious brand impersonation and fraudulent activity hosted on your infrastructure.\n\n`;
-  letter += `Target Domain: ${def} (Resolving to IP: ${ip})\n`;
-  letter += `Registrar: ${reg}\n`;
-  letter += `Hosting Network: ${asName}\n\n`;
-  letter += `EVIDENCE OF MALICIOUS ACTIVITY:\n`;
-  letter += `1. Unauthorized use of the Thoughtworks brand name and deceptive likeness.\n`;
-  letter += `2. Registration details indicate a newly created domain with no authorization from Thoughtworks Inc.\n`;
-  if (intel.dns.mx.length > 0) {
-    letter += `3. Domain is weaponized with active MX mail exchangers (${intel.dns.mx.join(", ")}), enabling fraudulent communications to job applicants or employees.\n`;
+  letter += `To the Abuse & Trust & Safety Team at ${asn},\n\n`;
+  letter += `I am writing on behalf of Thoughtworks Information Security & Brand Protection to report active malicious brand impersonation and fraudulent phishing infrastructure hosted on your network.\n\n`;
+  letter += `Target Domain: ${def}\n`;
+  letter += `Resolved IP: ${ip}\n`;
+  letter += `Hosting Network / ASN: ${asn}\n\n`;
+  letter += `THREAT INTELLIGENCE & FORENSIC EVIDENCE:\n`;
+
+  if (intel.vt?.available && intel.vt.malicious > 0) {
+    letter += `1. VirusTotal Multi-Engine Detections: Flagged as MALICIOUS by ${intel.vt.malicious} independent security vendors (including Google Safe Browsing, Kaspersky, Sophos). Direct Dossier: ${intel.vt.guiUrl}\n`;
+  } else {
+    letter += `1. Multi-Engine Scanners report suspicious brand impersonation telemetry targeting Thoughtworks Inc.\n`;
   }
-  letter += `\nWe request the immediate suspension of this domain name in accordance with your Acceptable Use Policy (AUP) and ICANN anti-abuse provisions.\n\n`;
-  letter += `Regards,\nThoughtworks Information Security & Incident Response\nEmail: abuse-report@thoughtworks.com\n`;
+
+  if (intel.urlscan?.available) {
+    if (intel.urlscan.title) {
+      letter += `2. Landing Page DOM Inspection: The landing page explicitly mimics Thoughtworks with page title: "${intel.urlscan.title}".\n`;
+    }
+    if (intel.urlscan.reportUrl) {
+      letter += `3. urlscan.io Visual & DOM Sandbox Evidence: Public sandbox capture available at: ${intel.urlscan.reportUrl}\n`;
+    }
+  }
+
+  letter += `4. Unauthorized Trademark Infringement: The domain uses the Thoughtworks trademark without authorization to deceive candidates and employees.\n\n`;
+  letter += `We formally request the immediate suspension and takedown of this domain name and associated hosting in accordance with your Acceptable Use Policy (AUP) and ICANN anti-abuse provisions.\n\n`;
+  letter += `Regards,\n`;
+  letter += `Thoughtworks Information Security & Incident Response Team\n`;
+  letter += `Email: abuse-report@thoughtworks.com\n`;
+  letter += `Reference ID: TW-IR-${Date.now().toString().slice(-6)}\n`;
   return letter;
 }
 
@@ -1164,17 +1136,29 @@ function generateMarkdownReport(intel) {
   md += `- **Investigation Date:** \`${intel.timestamp}\`\n`;
   md += `- **Risk Score:** **${intel.riskScore}/100**\n`;
   md += `- **Verdict:** **${intel.verdict}**\n\n`;
+
   md += `## 🚨 Impersonation Signals\n`;
   intel.indicators.forEach(i => { md += `- ⚠️ ${i}\n`; });
-  md += `\n## 🌐 DNS & Infrastructure\n`;
-  md += `- **Resolved IPs:** \`${intel.dns.a.join(", ") || "None"}\`\n`;
-  md += `- **BGP ASN:** \`AS${intel.bgp.asn || "N/A"}\` (${intel.bgp.asName || "N/A"})\n`;
-  md += `- **Registrar:** \`${intel.rdap.registrar}\`\n`;
-  md += `- **Domain Age:** \`${intel.rdap.ageDays || "Unknown"} days\`\n\n`;
-  md += `## ✉️ Email Posture\n`;
-  md += `- **MX:** \`${intel.dns.mx.join(", ") || "None"}\`\n`;
-  md += `- **SPF:** \`${intel.dns.spf || "None"}\`\n`;
-  md += `- **DMARC:** \`${intel.dns.dmarc || "Missing"}\`\n`;
+
+  md += `\n## 🦠 VirusTotal Intelligence Engine\n`;
+  md += `- **Malicious Vendors:** \`${intel.vt?.malicious || 0}\` / \`${intel.vt?.totalEngines || 0}\`\n`;
+  md += `- **Suspicious Vendors:** \`${intel.vt?.suspicious || 0}\`\n`;
+  md += `- **Reputation Score:** \`${intel.vt?.reputation || 0}\`\n`;
+  md += `- **Tags:** \`${(intel.vt?.tags || []).join(", ") || "None"}\`\n`;
+  md += `- **Full Report:** [VirusTotal Dossier](${intel.vt?.guiUrl})\n\n`;
+
+  md += `## 🔍 urlscan.io Sandbox & Landing Page\n`;
+  md += `- **Page Title:** \`${intel.urlscan?.title || "None"}\`\n`;
+  md += `- **Effective URL:** \`${intel.urlscan?.effectiveUrl || "None"}\`\n`;
+  md += `- **Resolved IP:** \`${intel.urlscan?.ip || "None"}\` (${intel.urlscan?.country || 'Unknown'})\n`;
+  md += `- **Hosting ASN:** \`${intel.urlscan?.asn || "None"}\` (${intel.urlscan?.asnname || 'Unknown'})\n`;
+  md += `- **Server Banner:** \`${intel.urlscan?.server || "None"}\`\n`;
+  md += `- **Verdict Score:** \`${intel.urlscan?.verdictScore || 0}\`\n`;
+  if (intel.urlscan?.screenshotUrl) {
+    md += `- **Screenshot Capture:** [View Screenshot](${intel.urlscan.screenshotUrl})\n`;
+  }
+  md += `- **Full Sandbox Report:** [urlscan.io Analysis](${intel.urlscan?.reportUrl})\n`;
+
   return md;
 }
 
@@ -1204,7 +1188,6 @@ function getMemory() {
 
 function saveToMemory(intel) {
   let history = getMemory();
-  // Filter out duplicate domain
   history = history.filter(h => h.domain !== intel.domain);
   history.unshift({
     domain: intel.domain,
@@ -1212,10 +1195,9 @@ function saveToMemory(intel) {
     riskScore: intel.riskScore,
     verdict: intel.verdict,
     timestamp: intel.timestamp,
-    registrar: intel.rdap.registrar,
-    ageDays: intel.rdap.ageDays
+    vtMalicious: intel.vt?.malicious || 0,
+    urlscanScore: intel.urlscan?.verdictScore || 0
   });
-  // Keep last 30
   history = history.slice(0, 30);
   localStorage.setItem(MEMORY_STORAGE_KEY, JSON.stringify(history));
   updateHistoryBadge();
@@ -1223,7 +1205,7 @@ function saveToMemory(intel) {
 
 function updateHistoryBadge() {
   const count = getMemory().length;
-  historyCount.innerText = count;
+  if (historyCount) historyCount.innerText = count;
 }
 
 function openHistoryDrawer() {
@@ -1240,10 +1222,10 @@ function openHistoryDrawer() {
       return `
         <div class="history-item" onclick="loadFromHistory('${item.domain}')">
           <div class="history-item-top">
-            <span class="history-domain">${item.defangedDomain}</span>
+            <span class="history-domain">${escapeHtml(item.defangedDomain)}</span>
             <span class="history-score-badge" style="background: ${badgeColor}; color: #000;">${item.riskScore}</span>
           </div>
-          <div class="history-date">${new Date(item.timestamp).toLocaleString()} • ${item.registrar || 'Unknown'}</div>
+          <div class="history-date">${new Date(item.timestamp).toLocaleString()} • VT: ${item.vtMalicious || 0} alerts</div>
         </div>
       `;
     }).join("");

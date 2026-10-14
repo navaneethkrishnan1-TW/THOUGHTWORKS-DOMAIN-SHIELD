@@ -1,88 +1,50 @@
-# 🛡️ Thoughtworks Domain Shield (GitHub Pages Edition)
+# 🛡️ Thoughtworks Domain Shield (Dual-Engine Edition)
 > **Author:** `navaneethkrishnan1-TW`  
 > **Deployment:** GitHub Pages (Client-Side Serverless Cyber Threat Intelligence Dashboard)  
-> **Target:** Triage & investigate suspicious domains impersonating Thoughtworks with 1-click launch of all 13 SOC tools.
+> **Engines:** Dedicated VirusTotal v3 REST API & urlscan.io Visual DOM Sandbox  
+> **Target:** Triage & investigate suspicious domains impersonating Thoughtworks with live visual landing page captures and multi-engine threat scores.
 
 ---
 
-## 🚀 Live Demo & How to Deploy to GitHub Pages
-
-To host this on your personal GitHub Pages URL (`https://navaneethkrishnan1-TW.github.io/thoughtworks-domain-shield/`):
-
-### 1. Initialize & Push to your GitHub account:
-Run the following commands in your terminal:
-
-```bash
-cd /Users/navaneeth/antigravity/thoughtworks-domain-shield
-
-# Initialize Git
-git init
-git add .
-git commit -m "feat: initial commit of Thoughtworks Domain Shield GitHub Pages app"
-
-# Link to your GitHub repository (create an empty repo named 'thoughtworks-domain-shield' first on github.com)
-git branch -M main
-git remote add origin https://github.com/navaneethkrishnan1-TW/thoughtworks-domain-shield.git
-git push -u origin main
-```
-
-### 2. Enable GitHub Pages:
-1. Open your repository on GitHub: `https://github.com/navaneethkrishnan1-TW/thoughtworks-domain-shield`
-2. Go to **Settings** → **Pages** (in the left sidebar).
-3. Under **Branch**, select **`main`** and **`/ (root)`**, then click **Save**.
-4. In ~60 seconds, your page will be live at:  
-   👉 **`https://navaneethkrishnan1-TW.github.io/thoughtworks-domain-shield/`**
-
-*(Alternatively, if you create a repo named `navaneethkrishnan1-TW.github.io`, it will be live directly at your root domain!)*
+## 🌐 Live Application
+The tool is hosted live on GitHub Pages:  
+👉 **`https://navaneethkrishnan1-tw.github.io/THOUGHTWORKS-DOMAIN-SHIELD/`**
 
 ---
 
-## ⚡ How It Works (100% Client-Side, Zero Backend Needed)
+## ⚡ Architecture: Dedicated Dual Threat Intelligence Engines
 
-Traditional web tools require complex Python backends. This web application runs **100% inside the user's browser** using modern CORS-enabled public threat intelligence APIs:
+The application has been refactored to focus exclusively on two top-tier threat intelligence engines:
 
-1. **DNS-over-HTTPS (DoH)**: Queries Google Public DNS (`https://dns.google/resolve`) over HTTPS to fetch:
-   - `A` records (IPv4 addresses)
-   - `AAAA` records (IPv6 addresses)
-   - `MX` records (mail exchangers)
-   - `TXT` records (SPF validation)
-   - `_dmarc.<domain>` records (DMARC policy status)
-   - `NS` records (authoritative nameservers)
-2. **ICANN RDAP Protocol**: Queries `https://rdap.org/domain/<domain>` over HTTPS with CORS to extract registrar identity, registration date, expiration, and exact domain age in days.
-3. **BGP & ASN Intelligence**: Queries the **RIPE NCC** REST API (`https://stat.ripe.net/data/network-info/` & `as-overview/`) to map resolved IP addresses to their Autonomous System Number (ASN), AS Name, and BGP CIDR prefix.
-4. **urlscan.io API (Search & Live Submissions)**:
-   - **Search API (`/api/v1/search/`)**: Fetches historical DOM captures, landing page titles, server banners, malicious verdicts/scores, and live screenshots.
-   - **Submission API (`/api/v1/scan/`)**: Allows 1-click submission of live scans directly from the browser using your `urlscan.io API Key`.
-   - **API Key Persistence**: API keys are saved locally in browser `localStorage` (zero backend/server storage).
-5. **Memory System (NT Storage)**: Persists previous domain investigations in browser `localStorage` (`TW_NT_INVESTIGATIONS_MEMORY`). Analysts can inspect past targets, re-load them with 1 click, or export the full memory dossier to JSON.
-6. **One-Click Launchpad for All 13 Tools**: Pre-fills target domains and IPs and opens all 13 tools simultaneously in separate browser tabs!
+### 1. 🦠 VirusTotal Threat Intelligence Engine (v3 API)
+- **Multi-Engine Detection Ratio**: Aggregates verdicts from 70+ AV and threat intelligence scanners (Google Safe Browsing, Kaspersky, Sophos, Fortinet, BitDefender, ESET, etc.).
+- **Detection Meter Bar**: Color-coded breakdown of Malicious (Red), Suspicious (Yellow), Harmless (Green), and Undetected engines.
+- **Reputation & Community Score**: Captures threat community feedback and score metrics.
+- **Threat Categories & Tags**: Identifies malware families, phishing tags, and malicious campaigns.
+- **Security Vendor Breakdown**: Lists all individual engines that flagged the domain along with their detection verdict.
+- **Direct Link**: 1-click access to the full VirusTotal GUI dossier.
 
----
-
-## 🛠️ The 13 Tools Integrated (From Screenshot)
-
-| # | Tool | Function in Web App |
-|---|---|---|
-| **01** | **ANYRun** | Launches interactive sandbox analysis session |
-| **02** | **IP Void** | Deep-links to IP blacklist & reputation check with resolved IP |
-| **03** | **Abuse IP DB** | Deep-links to AbuseIPDB IP reputation report |
-| **04** | **URL Void** | Deep-links to URLVoid reputation & safety scan |
-| **05** | **ICANN Lookup** | Deep-links to official ICANN registration search |
-| **06** | **URL Scan.io** | Deep-links to urlscan.io domain search + API query |
-| **07** | **IP Quality** | Deep-links to IPQualityScore fraud and proxy checker |
-| **08** | **Browser.lol** | Launches disposable isolated cloud browser |
-| **09** | **Email Scanner Sensei** | Deep-links to MXToolbox / Sensei email health checker |
-| **10** | **EasyDMARC** | Deep-links to EasyDMARC anti-spoofing policy analyzer |
-| **11** | **WHOis** | Deep-links to Who.is registration & nameserver dossier |
-| **12** | **cymru** | Direct link to Team Cymru IP-to-ASN mapping services |
-| **13** | **CyberChef** | Pre-loaded CyberChef recipe with URL defanging |
-| *+* | *VirusTotal, Shodan, Crt.sh* | Supplementary multi-engine scans and SSL logs |
+### 2. 🔍 urlscan.io Sandbox & Visual Landing Page Engine
+- **📸 Visual Landing Page Screenshot**: Prominent high-resolution preview of the target domain's live website.
+- **DOM Title & Content Inspection**: Extracts page `<title>` to detect fake "Thoughtworks Careers", "Candidate Portals", or "Employee Login" scams.
+- **Effective Destination URL**: Follows HTTP redirect chains to identify the final landing destination.
+- **Network & Host Telemetry**: Resolves host IP, Geolocation (Country/City), Autonomous System Number (ASN), and Web Server banner.
+- **⚡ Live Scan Dispatch (`/api/v1/scan/`)**: Allows instant triggering of fresh public scans via the urlscan.io API directly from the browser.
 
 ---
 
-## 📋 Features & Workflow
+## 🔑 Secure API Keys Management (100% Client-Side)
 
-- **Auto-Defanging & Normalization**: Strips `http(s)://`, `hxxp(s)://`, trailing paths, and converts `[.]` to standard dots for analysis, while displaying the defanged version safely.
-- **Thoughtworks Heuristic Gauge**: Visual gauge (0-100) combining brand inclusion, homoglyph typosquatting, keywords (`careers`, `jobs`, `login`, `hr`, `offer`, etc.), disposable TLDs (`.xyz`, `.online`, etc.), and domain age.
-- **Automated Takedown Generator**: Generates formal abuse complaints ready to send to registrars and hosting providers, with 1-click clipboard copy.
-- **Export Options**: Download complete Markdown reports (`.md`) or raw JSON dossiers (`.json`).
+- **Zero Exposure**: API keys are saved **strictly in your browser's private `localStorage`** (`tw_urlscan_api_key` and `tw_vt_api_key`).
+- **No Git Leaks**: Keys are never pushed to GitHub, never sent to external servers, and never visible to the public.
+- **1-Click Team Onboarding Link**: Click **"🔗 Copy Team Link"** in the API Keys modal to generate a private `#config=` URL fragment that loads the keys into your teammates' browsers in a single click (the URL fragment is never logged or sent to GitHub servers).
+
+---
+
+## 📋 Forensic Workflow & Features
+
+1. **Target Normalization & Defanging**: Auto-converts `hxxps://`, `[.]`, and deep URLs to canonical domain names while safely displaying the defanged target format (`thoughtworks-careers[.]online`).
+2. **Thoughtworks Impersonation Risk Score**: Algorithmic scoring gauge (0-100) combining brand match, homoglyph typosquatting, recruitment/credential phishing keywords, disposable TLDs, VirusTotal detection counts, and urlscan page title spoofing.
+3. **Automated Abuse Takedown Generator**: Drafts a formal abuse complaint citing VirusTotal multi-vendor detections and urlscan.io landing page evidence with 1-click clipboard copy.
+4. **NT Local Memory Drawer**: Stores your recent triage investigations locally for rapid recall and allows exporting full dossiers to JSON.
+5. **Report Exports**: Download formatted Markdown (`.md`) reports or complete JSON telemetry in one click.

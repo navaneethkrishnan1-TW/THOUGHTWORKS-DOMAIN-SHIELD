@@ -22,7 +22,7 @@
         <div class="tw-logo-badge">TW</div>
         <div class="brand-text">
           <h1>THOUGHTWORKS DOMAIN SHIELD</h1>
-          <p class="subtitle">Suspicious Domain & Impersonation Triage Suite // SOC Threat Intelligence</p>
+          <p class="subtitle">Dual-Engine Threat Intelligence // VirusTotal & urlscan.io Sandbox</p>
         </div>
       </div>
       <div class="header-meta">
@@ -48,7 +48,7 @@
     <section class="search-panel card">
       <div class="search-header">
         <h2>Target Reconnaissance</h2>
-        <p class="search-instruction">Enter domain, subdomain, or full phishing URL. Auto-normalizes and defangs target.</p>
+        <p class="search-instruction">Enter domain, subdomain, or phishing URL. Analyzed exclusively via <strong>VirusTotal (VT)</strong> and <strong>urlscan.io</strong> intelligence engines.</p>
       </div>
       <form id="investigateForm" class="search-form">
         <div class="input-wrapper">
@@ -72,6 +72,20 @@
           <button type="button" id="resetBtn" class="btn btn-ghost">Reset</button>
         </div>
       </form>
+
+      <!-- Active API Engines Status Pills -->
+      <div class="api-status-bar">
+        <span class="api-status-label">Active Threat Engines:</span>
+        <div id="vtStatusPill" class="api-pill">
+          <span class="pill-dot"></span>
+          <span>VirusTotal API v3: <strong id="vtStatusText">Ready</strong></span>
+        </div>
+        <div id="urlscanStatusPill" class="api-pill">
+          <span class="pill-dot"></span>
+          <span>urlscan.io Sandbox: <strong id="urlscanStatusText">Ready</strong></span>
+        </div>
+        <button type="button" id="configKeysQuickLink" class="api-pill-link">⚙️ Edit Keys</button>
+      </div>
     </section>
 
     <!-- Loading State Bar -->
@@ -79,8 +93,8 @@
       <div class="loading-content">
         <div class="loading-spinner-large"></div>
         <div class="loading-text">
-          <h3 id="loadingStep">Dispatching parallel intelligence queries...</h3>
-          <p class="dim-text">Querying DNS-over-HTTPS (A, MX, TXT, DMARC), ICANN RDAP, RIPE NCC BGP/ASN, and urlscan.io...</p>
+          <h3 id="loadingStep">Querying VirusTotal & urlscan.io APIs...</h3>
+          <p class="dim-text">Fetching multi-engine malware detections, reputation scores, DOM structure, and visual landing page screenshot...</p>
         </div>
       </div>
     </div>
@@ -127,7 +141,7 @@
             <div class="impersonation-flags-box">
               <div class="box-title">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                THOUGHTWORKS IMPERSONATION SIGNALS
+                THOUGHTWORKS IMPERSONATION & THREAT SIGNALS
               </div>
               <ul id="impersonationFlagsList" class="flags-list">
                 <!-- Dynamically populated -->
@@ -138,160 +152,165 @@
         </div>
       </section>
 
-      <!-- 4-Pillar Intelligence Grid -->
-      <section class="intel-grid">
+      <!-- DUAL-ENGINE INTELLIGENCE DASHBOARD -->
+      <section class="dual-engine-grid">
         
-        <!-- Pillar 1: DNS & Routing -->
-        <div class="intel-card card">
-          <div class="card-header-line">
-            <div class="icon-circle icon-blue">🌐</div>
-            <h3>DNS & Routing (DoH)</h3>
+        <!-- ===================================================================== -->
+        <!-- ENGINE 1: VIRUSTOTAL INTEL CARD -->
+        <!-- ===================================================================== -->
+        <div class="engine-card card">
+          <div class="engine-header">
+            <div class="engine-title-group">
+              <div class="engine-icon icon-vt">🦠</div>
+              <div>
+                <h3>VirusTotal Threat Intelligence</h3>
+                <span class="engine-subtitle">Multi-Engine Security Scanners & Community Reputation</span>
+              </div>
+            </div>
+            <div id="vtVerdictBadge" class="badge-engine-status">--</div>
           </div>
-          <div class="intel-body">
-            <div class="intel-row">
-              <span class="row-label">Resolved IPv4:</span>
-              <span id="dnsARecords" class="row-value mono text-green">--</span>
+
+          <!-- Detection Ratio Meter Bar -->
+          <div class="vt-detection-section">
+            <div class="vt-ratio-header">
+              <span class="vt-ratio-title">Security Vendor Detection Ratio</span>
+              <span id="vtRatioText" class="vt-ratio-value mono">0 / 0</span>
             </div>
-            <div class="intel-row">
-              <span class="row-label">IPv6 (AAAA):</span>
-              <span id="dnsAAAARecords" class="row-value mono text-muted">None</span>
+            <div class="vt-multi-bar">
+              <div id="vtBarMalicious" class="vt-bar-segment segment-malicious" style="width: 0%;"></div>
+              <div id="vtBarSuspicious" class="vt-bar-segment segment-suspicious" style="width: 0%;"></div>
+              <div id="vtBarHarmless" class="vt-bar-segment segment-harmless" style="width: 0%;"></div>
+              <div id="vtBarUndetected" class="vt-bar-segment segment-undetected" style="width: 100%;"></div>
             </div>
-            <div class="intel-row">
-              <span class="row-label">BGP ASN & Operator:</span>
-              <span id="bgpAsn" class="row-value mono">--</span>
+          </div>
+
+          <!-- Key Metrics Grid -->
+          <div class="vt-metrics-grid">
+            <div class="metric-box">
+              <span class="metric-label">Malicious</span>
+              <span id="vtCountMalicious" class="metric-val text-red mono">--</span>
             </div>
-            <div class="intel-row">
-              <span class="row-label">BGP Prefix:</span>
-              <span id="bgpPrefix" class="row-value mono text-muted">--</span>
+            <div class="metric-box">
+              <span class="metric-label">Suspicious</span>
+              <span id="vtCountSuspicious" class="metric-val text-yellow mono">--</span>
             </div>
-            <div class="intel-row">
-              <span class="row-label">Authoritative NS:</span>
-              <span id="dnsNSRecords" class="row-value mono text-muted">--</span>
+            <div class="metric-box">
+              <span class="metric-label">Harmless</span>
+              <span id="vtCountHarmless" class="metric-val text-green mono">--</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label">Reputation</span>
+              <span id="vtReputation" class="metric-val mono">--</span>
+            </div>
+          </div>
+
+          <!-- Detected Categories & Tags -->
+          <div class="vt-section-group">
+            <span class="group-title">Engine Categories & Tags:</span>
+            <div id="vtTagsList" class="vt-chips-list">
+              <span class="dim-text">No category flags</span>
+            </div>
+          </div>
+
+          <!-- Security Vendors Flagging Section -->
+          <div class="vt-section-group">
+            <span class="group-title">Flagging Security Vendors:</span>
+            <div id="vtVendorsList" class="vt-vendors-container">
+              <span class="text-green text-sm">No security engines currently flag this target as malicious.</span>
+            </div>
+          </div>
+
+          <!-- VT Infrastructure & Deep Link -->
+          <div class="engine-footer-actions">
+            <a id="vtDeepLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm btn-block">
+              🦠 View Full VirusTotal Dossier ↗
+            </a>
+            <div id="vtCorsNotice" class="cors-notice" style="display: none;">
+              <span>ℹ️ Browser CORS restriction active. Click above to open full VT live report directly.</span>
             </div>
           </div>
         </div>
 
-        <!-- Pillar 2: Email Authentication -->
-        <div class="intel-card card">
-          <div class="card-header-line">
-            <div class="icon-circle icon-yellow">✉️</div>
-            <h3>Email Weaponization</h3>
+        <!-- ===================================================================== -->
+        <!-- ENGINE 2: URLSCAN.IO & LANDING PAGE CARD -->
+        <!-- ===================================================================== -->
+        <div class="engine-card card">
+          <div class="engine-header">
+            <div class="engine-title-group">
+              <div class="engine-icon icon-urlscan">🔍</div>
+              <div>
+                <h3>urlscan.io Sandbox & Landing Page</h3>
+                <span class="engine-subtitle">DOM Tree, Visual Capture & Behavioral Sandbox</span>
+              </div>
+            </div>
+            <div id="urlscanVerdictBadge" class="badge-engine-status">--</div>
           </div>
-          <div class="intel-body">
-            <div class="intel-row">
-              <span class="row-label">MX Records:</span>
-              <span id="emailMXRecords" class="row-value mono">--</span>
-            </div>
-            <div class="intel-row">
-              <span class="row-label">Email Threat:</span>
-              <span id="emailThreatStatus" class="row-value">--</span>
-            </div>
-            <div class="intel-row">
-              <span class="row-label">SPF Record:</span>
-              <span id="emailSPFRecord" class="row-value mono text-muted">--</span>
-            </div>
-            <div class="intel-row">
-              <span class="row-label">DMARC Status:</span>
-              <span id="emailDMARCStatus" class="row-value mono">--</span>
-            </div>
-          </div>
-        </div>
 
-        <!-- Pillar 3: WHOIS & Registration -->
-        <div class="intel-card card">
-          <div class="card-header-line">
-            <div class="icon-circle icon-magenta">📋</div>
-            <h3>Registration & RDAP</h3>
-          </div>
-          <div class="intel-body">
-            <div class="intel-row">
-              <span class="row-label">Registrar:</span>
-              <span id="rdapRegistrar" class="row-value">--</span>
+          <!-- Prominent Visual Landing Page Screenshot Showcase -->
+          <div class="landing-screenshot-section">
+            <div class="screenshot-header">
+              <span class="screenshot-title">📸 Visual Landing Page Capture</span>
+              <span id="screenshotStatus" class="screenshot-tag">Live Preview</span>
             </div>
-            <div class="intel-row">
-              <span class="row-label">Created Date:</span>
-              <span id="rdapCreated" class="row-value mono">--</span>
-            </div>
-            <div class="intel-row">
-              <span class="row-label">Domain Age:</span>
-              <span id="rdapAge" class="row-value mono text-cyan">--</span>
-            </div>
-            <div class="intel-row">
-              <span class="row-label">Expiration:</span>
-              <span id="rdapExpires" class="row-value mono text-muted">--</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pillar 4: Threat Intelligence & Sandbox -->
-        <div class="intel-card card">
-          <div class="card-header-line">
-            <div class="icon-circle icon-red">🔬</div>
-            <h3>urlscan.io & Sandbox Intel</h3>
-          </div>
-          <div class="intel-body">
-            <div class="intel-row">
-              <span class="row-label">urlscan.io Status:</span>
-              <span id="urlscanCount" class="row-value mono">--</span>
-            </div>
-            <div class="intel-row" id="urlscanVerdictRow" style="display: none;">
-              <span class="row-label">Threat Verdict:</span>
-              <span id="urlscanVerdict" class="row-value">--</span>
-            </div>
-            <div class="intel-row" id="urlscanTitleRow" style="display: none;">
-              <span class="row-label">Landing Title:</span>
-              <span id="urlscanTitle" class="row-value mono" style="font-size:0.8rem; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">--</span>
-            </div>
-            <div class="intel-row">
-              <span class="row-label">Scan Report:</span>
-              <span id="urlscanLink" class="row-value">--</span>
-            </div>
-            <div class="intel-row">
-              <span class="row-label">Live Screenshot:</span>
-              <span id="urlscanScreenshot" class="row-value">--</span>
-            </div>
-            <div id="urlscanThumbWrapper" style="display: none; margin: 0.5rem 0;">
-              <a id="urlscanThumbLink" href="#" target="_blank" rel="noopener noreferrer">
-                <img id="urlscanThumbImg" class="urlscan-preview-img" src="" alt="urlscan.io Snapshot Preview">
-              </a>
-            </div>
-            <div class="intel-row">
-              <span class="row-label">SSL Cert Search:</span>
-              <span id="crtshLink" class="row-value">--</span>
-            </div>
-            
-            <!-- urlscan API Submission -->
-            <div class="urlscan-action-box" style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.08);">
-              <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-                <button id="urlscanSubmitBtn" type="button" class="btn btn-sm btn-primary" style="font-size:0.8rem; padding:0.35rem 0.65rem;">
-                  ⚡ Submit Scan (API)
-                </button>
-                <button id="urlscanKeyQuickBtn" type="button" class="btn btn-sm btn-ghost" style="font-size:0.8rem; padding:0.35rem 0.5rem;" title="Configure API Key">
-                  ⚙️ Key
+            <div id="screenshotContainer" class="screenshot-display-box">
+              <div id="screenshotPlaceholder" class="screenshot-empty">
+                <span style="font-size: 2.2rem;">🖥️</span>
+                <p>No visual snapshot cached for this domain.</p>
+                <button type="button" id="triggerScanScreenshotBtn" class="btn btn-sm btn-primary">
+                  ⚡ Capture Live Landing Page Now
                 </button>
               </div>
-              <div id="urlscanSubmitMsg" class="dim-text" style="font-size:0.75rem; margin-top:0.4rem; display:none;"></div>
+              <a id="screenshotLink" href="#" target="_blank" rel="noopener noreferrer" style="display: none;">
+                <img id="screenshotImg" class="landing-screenshot-img" src="" alt="Live Landing Page Snapshot">
+                <div class="screenshot-overlay">
+                  <span>🔍 Click to View Full High-Res Screenshot ↗</span>
+                </div>
+              </a>
             </div>
           </div>
-        </div>
 
-      </section>
-
-      <!-- Launchpad Section: Curated Domain OSINT Tools -->
-      <section class="tools-launchpad card">
-        <div class="tools-header-row">
-          <div>
-            <h2>Domain OSINT Tools Launchpad</h2>
-            <p class="search-instruction">Pre-configured threat intelligence and infrastructure lookup links with target pre-filled.</p>
+          <!-- Landing Page DOM & Infrastructure Metadata -->
+          <div class="landing-metadata-list">
+            <div class="meta-row">
+              <span class="meta-label">Landing Page Title:</span>
+              <span id="landingTitle" class="meta-val mono">--</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Effective URL:</span>
+              <span id="landingEffectiveUrl" class="meta-val mono text-cyan">--</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Resolved IP & Country:</span>
+              <span id="landingIpCountry" class="meta-val mono">--</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Hosting ASN / Network:</span>
+              <span id="landingAsn" class="meta-val mono">--</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Web Server Banner:</span>
+              <span id="landingServer" class="meta-val mono">--</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Sandbox Verdict Score:</span>
+              <span id="landingVerdictScore" class="meta-val mono font-bold">--</span>
+            </div>
           </div>
-          <button id="openAllToolsBtn" class="btn btn-primary">
-            🚀 Launch All 12 Domain OSINT Tools in Tabs
-          </button>
+
+          <!-- urlscan API Submission & Link Actions -->
+          <div class="engine-footer-actions">
+            <div class="action-dual-buttons">
+              <button id="urlscanSubmitLiveBtn" type="button" class="btn btn-primary btn-sm">
+                ⚡ Dispatch Live Scan (API)
+              </button>
+              <a id="urlscanDeepLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+                🔍 Open urlscan.io Report ↗
+              </a>
+            </div>
+            <div id="urlscanLiveSubmitStatus" class="urlscan-status-msg" style="display: none;"></div>
+          </div>
         </div>
 
-        <div id="toolsGrid" class="tools-grid">
-          <!-- Dynamically populated from TOOLS_MAP -->
-        </div>
       </section>
 
       <!-- Abuse Takedown Template Section -->
@@ -299,7 +318,7 @@
         <div class="takedown-header">
           <div>
             <h2>Registrar & Hosting Abuse Takedown Complaint</h2>
-            <p class="search-instruction">Pre-drafted formal abuse letter ready to submit to registrar and host abuse contacts.</p>
+            <p class="search-instruction">Pre-drafted formal abuse letter citing VirusTotal detection stats and urlscan.io landing page evidence.</p>
           </div>
           <div class="action-btn-group">
             <button id="copyTakedownBtn" class="btn btn-outline btn-sm">📋 Copy Letter</button>
@@ -341,7 +360,7 @@
       </div>
       <div class="modal-body">
         <p class="search-instruction">
-          Keys are saved <strong>only in your browser's private localStorage</strong>. They are never committed to GitHub or exposed to the public.
+          Keys are stored <strong>strictly in your browser's private localStorage</strong>. They are never committed to GitHub or exposed to public repositories.
         </p>
         
         <!-- urlscan.io Key -->
@@ -401,7 +420,7 @@
   <footer class="app-footer">
     <div class="container footer-content">
       <p>Thoughtworks Cyber Threat Intelligence // Maintained by <strong>navaneethkrishnan1-TW</strong></p>
-      <p class="dim-text">Powered by Google DoH, ICANN RDAP, RIPE NCC, and Community Threat Intelligence Tools.</p>
+      <p class="dim-text">Powered exclusively by VirusTotal v3 and urlscan.io Threat Intelligence Engines.</p>
     </div>
   </footer>
 
