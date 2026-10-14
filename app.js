@@ -32,120 +32,91 @@ const IMPERSONATION_KEYWORDS = [
   "solutions", "lab", "digital", "official", "network", "dev"
 ];
 
-// Exact tools from /Users/navaneeth/Desktop/Screenshot 2026-10-12 at 1.47.50 AM.heic
+// Curated Domain OSINT & Infrastructure Threat Intelligence Tools
 const TOOLS_MAP = [
   {
     id: 1,
-    name: "ANYRun",
-    category: "Interactive Malware & Phishing Sandbox",
-    icon: "▶️",
-    getUrl: (d, ip) => `https://app.any.run/`
+    name: "WHOis",
+    category: "Domain Registration & Nameserver Dossier",
+    icon: "📜",
+    getUrl: (d, ip) => `https://who.is/whois/${d}`
   },
   {
     id: 2,
-    name: "IP Void",
-    category: "IP & Domain Reputation Check",
-    icon: "🌐",
-    getUrl: (d, ip) => ip ? `https://www.ipvoid.com/ip-blacklist-check/?ip=${ip}` : `https://www.ipvoid.com/domain-reputation-check/`
-  },
-  {
-    id: 3,
-    name: "Abuse IP DB",
-    category: "IP Threat Reputation & Abuse Confidence",
-    icon: "🚫",
-    getUrl: (d, ip) => ip ? `https://www.abuseipdb.com/check/${ip}` : `https://www.abuseipdb.com/`
-  },
-  {
-    id: 4,
-    name: "URL Void",
-    category: "Domain Safety & Web Blacklist Engine",
-    icon: "🔍",
-    getUrl: (d, ip) => `https://www.urlvoid.com/scan/${d}/`
-  },
-  {
-    id: 5,
     name: "ICANN Lookup",
-    category: "Official ICANN RDAP / WHOIS Records",
+    category: "Official ICANN RDAP Registrar Records",
     icon: "🌐",
     getUrl: (d, ip) => `https://lookup.icann.org/en/lookup?q=${encodeURIComponent(d)}`
   },
   {
-    id: 6,
+    id: 3,
+    name: "URL Void",
+    category: "Domain Safety & Web Blacklist Engine (30+ Engines)",
+    icon: "🔍",
+    getUrl: (d, ip) => `https://www.urlvoid.com/scan/${d}/`
+  },
+  {
+    id: 4,
     name: "URL Scan.io",
-    category: "DOM, Network Requests & Page Screenshot",
+    category: "DOM, Redirects & Page Screenshot Sandbox",
     icon: "🔎",
     getUrl: (d, ip) => `https://urlscan.io/search/#domain%3A${encodeURIComponent(d)}`
   },
   {
+    id: 5,
+    name: "VirusTotal",
+    category: "Multi-Vendor Domain Threat Intel & Passive DNS",
+    icon: "🦠",
+    getUrl: (d, ip) => `https://www.virustotal.com/gui/domain/${encodeURIComponent(d)}`
+  },
+  {
+    id: 6,
+    name: "Crt.sh",
+    category: "Certificate Transparency Logs & Subdomain Discovery",
+    icon: "🔐",
+    getUrl: (d, ip) => `https://crt.sh/?q=%25${encodeURIComponent(d)}`
+  },
+  {
     id: 7,
-    name: "IP Quality",
-    category: "IPQualityScore Fraud & Malicious URL Scanner",
-    icon: "🔥",
-    getUrl: (d, ip) => ip ? `https://www.ipqualityscore.com/free-ip-lookup-proxy-vpn-test/lookup/${ip}` : `https://www.ipqualityscore.com/threat-feeds/malicious-url-scanner`
-  },
-  {
-    id: 8,
-    name: "Browser.lol",
-    category: "Safe Disposable Cloud Browser Sandbox",
-    icon: "🧪",
-    getUrl: (d, ip) => `https://browser.lol/`
-  },
-  {
-    id: 9,
-    name: "Email Scanner Sensei",
-    category: "Email Security & Mail Health Assessment",
-    icon: "✉️",
-    getUrl: (d, ip) => `https://mxtoolbox.com/emailhealth/${encodeURIComponent(d)}`
-  },
-  {
-    id: 10,
     name: "EasyDMARC",
-    category: "DMARC & SPF Anti-Spoofing Analyzer",
+    category: "DMARC, SPF & Anti-Spoofing Posture Validator",
     icon: "🛡️",
     getUrl: (d, ip) => `https://easydmarc.com/tools/dmarc-lookup?domain=${encodeURIComponent(d)}`
   },
   {
-    id: 11,
-    name: "WHOis",
-    category: "Domain Registration & Ownership Dossier",
-    icon: "📜",
-    getUrl: (d, ip) => `https://who.is/whois/${encodeURIComponent(d)}`
+    id: 8,
+    name: "Email Scanner Sensei",
+    category: "MX Records & Mail Delivery Health Assessment",
+    icon: "✉️",
+    getUrl: (d, ip) => `https://mxtoolbox.com/emailhealth/${encodeURIComponent(d)}`
   },
   {
-    id: 12,
+    id: 9,
+    name: "Abuse IP DB",
+    category: "IP Abuse Confidence & Threat Incident Reports",
+    icon: "🚫",
+    getUrl: (d, ip) => ip ? `https://www.abuseipdb.com/check/${ip}` : `https://www.abuseipdb.com/`
+  },
+  {
+    id: 10,
+    name: "IP Void",
+    category: "IP Blacklist & Hosting Infrastructure Check",
+    icon: "🌐",
+    getUrl: (d, ip) => ip ? `https://www.ipvoid.com/ip-blacklist-check/?ip=${ip}` : `https://www.ipvoid.com/domain-reputation-check/`
+  },
+  {
+    id: 11,
     name: "cymru",
     category: "Team Cymru IP to ASN & BGP Reputation",
     icon: "🐉",
     getUrl: (d, ip) => `https://team-cymru.com/community-services/ip-asn-mapping/`
   },
   {
-    id: 13,
-    name: "CyberChef",
-    category: "Cyber Swiss Army Knife (Defang & Recipe Analysis)",
-    icon: "👨‍🍳",
-    getUrl: (d, ip) => `https://gchq.github.io/CyberChef/#recipe=Defang_URL(true,true,true,'Valid%20domains%20and%20full%20URLs')&input=${encodeURIComponent(d)}`
-  },
-  // Supplementary analyst tools
-  {
-    id: 14,
-    name: "VirusTotal",
-    category: "Multi-Engine Threat & Community Graph",
-    icon: "🦠",
-    getUrl: (d, ip) => `https://www.virustotal.com/gui/domain/${encodeURIComponent(d)}`
-  },
-  {
-    id: 15,
+    id: 12,
     name: "Shodan",
-    category: "Internet-Connected Device & Open Ports",
+    category: "Open Ports, Host Services & SSL Banners",
     icon: "👁️",
     getUrl: (d, ip) => `https://www.shodan.io/search?query=hostname%3A${encodeURIComponent(d)}`
-  },
-  {
-    id: 16,
-    name: "Crt.sh",
-    category: "Certificate Transparency Logs",
-    icon: "🔐",
-    getUrl: (d, ip) => `https://crt.sh/?q=%25${encodeURIComponent(d)}`
   }
 ];
 
@@ -193,8 +164,25 @@ const rdapAge = document.getElementById("rdapAge");
 const rdapExpires = document.getElementById("rdapExpires");
 
 const urlscanCount = document.getElementById("urlscanCount");
+const urlscanVerdictRow = document.getElementById("urlscanVerdictRow");
+const urlscanVerdict = document.getElementById("urlscanVerdict");
+const urlscanTitleRow = document.getElementById("urlscanTitleRow");
+const urlscanTitle = document.getElementById("urlscanTitle");
 const urlscanLink = document.getElementById("urlscanLink");
 const urlscanScreenshot = document.getElementById("urlscanScreenshot");
+const urlscanThumbWrapper = document.getElementById("urlscanThumbWrapper");
+const urlscanThumbImg = document.getElementById("urlscanThumbImg");
+const urlscanThumbLink = document.getElementById("urlscanThumbLink");
+const urlscanSubmitBtn = document.getElementById("urlscanSubmitBtn");
+const urlscanSubmitMsg = document.getElementById("urlscanSubmitMsg");
+const urlscanKeyToggleBtn = document.getElementById("urlscanKeyToggleBtn");
+const urlscanKeyQuickBtn = document.getElementById("urlscanKeyQuickBtn");
+const urlscanModal = document.getElementById("urlscanModal");
+const closeUrlscanModalBtn = document.getElementById("closeUrlscanModalBtn");
+const urlscanApiKeyInput = document.getElementById("urlscanApiKeyInput");
+const saveUrlscanKeyBtn = document.getElementById("saveUrlscanKeyBtn");
+const clearUrlscanKeyBtn = document.getElementById("clearUrlscanKeyBtn");
+const urlscanKeyStatusText = document.getElementById("urlscanKeyStatusText");
 const crtshLink = document.getElementById("crtshLink");
 
 const toolsGrid = document.getElementById("toolsGrid");
@@ -221,8 +209,23 @@ const toast = document.getElementById("toast");
 document.addEventListener("DOMContentLoaded", () => {
   renderToolsLaunchpad("thoughtworks.com", null);
   updateHistoryBadge();
+  updateUrlscanKeyUI();
   setupEventListeners();
 });
+
+function openUrlscanModal() {
+  if (urlscanModal) {
+    if (urlscanApiKeyInput) urlscanApiKeyInput.value = getUrlscanApiKey();
+    updateUrlscanKeyUI();
+    urlscanModal.style.display = "flex";
+  }
+}
+
+function closeUrlscanModal() {
+  if (urlscanModal) {
+    urlscanModal.style.display = "none";
+  }
+}
 
 function setupEventListeners() {
   investigateForm.addEventListener("submit", (e) => {
@@ -256,10 +259,10 @@ function setupEventListeners() {
     if (!currentIntel) return;
     const d = currentIntel.domain;
     const ip = currentIntel.dns.a[0] || null;
-    TOOLS_MAP.slice(0, 13).forEach(tool => {
+    TOOLS_MAP.forEach(tool => {
       window.open(tool.getUrl(d, ip), "_blank");
     });
-    showToast("Opened all 13 tools in browser tabs!");
+    showToast(`Opened all ${TOOLS_MAP.length} Domain OSINT tools in browser tabs!`);
   });
 
   copyTakedownBtn.addEventListener("click", () => {
@@ -283,6 +286,37 @@ function setupEventListeners() {
   drawerOverlay.addEventListener("click", closeHistoryDrawer);
   exportMemoryBtn.addEventListener("click", exportAllMemory);
   clearMemoryBtn.addEventListener("click", clearMemory);
+
+  // urlscan.io Key & Scan Event Listeners
+  if (urlscanKeyToggleBtn) urlscanKeyToggleBtn.addEventListener("click", openUrlscanModal);
+  if (urlscanKeyQuickBtn) urlscanKeyQuickBtn.addEventListener("click", openUrlscanModal);
+  if (closeUrlscanModalBtn) closeUrlscanModalBtn.addEventListener("click", closeUrlscanModal);
+  if (urlscanModal) {
+    urlscanModal.addEventListener("click", (e) => {
+      if (e.target === urlscanModal) closeUrlscanModal();
+    });
+  }
+  if (saveUrlscanKeyBtn) {
+    saveUrlscanKeyBtn.addEventListener("click", () => {
+      saveUrlscanApiKey(urlscanApiKeyInput ? urlscanApiKeyInput.value : "");
+      closeUrlscanModal();
+    });
+  }
+  if (clearUrlscanKeyBtn) {
+    clearUrlscanKeyBtn.addEventListener("click", () => {
+      clearUrlscanApiKey();
+      closeUrlscanModal();
+    });
+  }
+  if (urlscanSubmitBtn) {
+    urlscanSubmitBtn.addEventListener("click", () => {
+      if (currentIntel && currentIntel.domain) {
+        submitUrlscanScan(currentIntel.domain);
+      } else {
+        showToast("Please investigate a domain first.");
+      }
+    });
+  }
 }
 
 // ==============================================================================
@@ -347,7 +381,18 @@ async function runInvestigation(rawInput) {
     dns: { a: [], aaaa: [], mx: [], txt: [], spf: null, dmarc: null, ns: [] },
     rdap: { registrar: "Unknown", created: null, expires: null, ageDays: null },
     bgp: { asn: null, asName: null, prefix: null },
-    urlscan: { scansFound: 0, latestUrl: null, screenshotUrl: null },
+    urlscan: {
+      scansFound: 0,
+      latestUrl: null,
+      screenshotUrl: null,
+      malicious: false,
+      score: 0,
+      title: null,
+      server: null,
+      ip: null,
+      date: null,
+      categories: []
+    },
     indicators: [],
     riskScore: 0,
     verdict: "ANALYZING"
@@ -427,44 +472,131 @@ async function queryDoH(name, type) {
   }
 }
 
-// RDAP Registration Query
+// Multi-Source RDAP & WHOIS Query Engine (Fast, CORS-Safe, Multi-Tiered)
 async function queryRDAP(domain) {
-  const result = { registrar: "Unknown", created: null, expires: null, ageDays: null };
+  const result = {
+    registrar: "Unavailable (Check WHOIS link)",
+    created: null,
+    expires: null,
+    ageDays: null,
+    abuseEmail: null
+  };
+
+  const tld = domain.split(".").pop().toLowerCase();
+
+  // Helper with 4.5s timeout so queries never hang
+  const fetchWithTimeout = async (url, options = {}, timeoutMs = 4500) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      return res;
+    } catch (e) {
+      clearTimeout(timer);
+      throw e;
+    }
+  };
+
+  // Source 1: Direct Verisign Registry RDAP for .com and .net (Authoritative, Zero Redirects, CORS enabled)
+  if (tld === "com" || tld === "net") {
+    try {
+      const res = await fetchWithTimeout(`https://rdap.verisign.com/${tld}/v1/domain/${domain}`);
+      if (res.ok) {
+        const data = await res.json();
+        
+        // Find registration date
+        if (data.events && Array.isArray(data.events)) {
+          const regEvent = data.events.find(e => e.eventAction === "registration");
+          const expEvent = data.events.find(e => e.eventAction === "expiration");
+          if (regEvent && regEvent.eventDate) {
+            result.created = regEvent.eventDate;
+            const dt = new Date(regEvent.eventDate);
+            if (!isNaN(dt.getTime())) {
+              result.ageDays = Math.floor(Math.abs(Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
+            }
+          }
+          if (expEvent && expEvent.eventDate) {
+            result.expires = expEvent.eventDate;
+          }
+        }
+
+        // Find registrar
+        if (data.entities && Array.isArray(data.entities)) {
+          const regEntity = data.entities.find(e => e.roles && e.roles.includes("registrar"));
+          if (regEntity) {
+            const fnProp = regEntity.vcardArray?.[1]?.find(p => p[0] === "fn");
+            if (fnProp && fnProp[3]) {
+              result.registrar = fnProp[3];
+            } else if (regEntity.handle) {
+              result.registrar = `Registrar IANA ID: ${regEntity.handle}`;
+            }
+          }
+        }
+        
+        if (result.created && result.registrar !== "Unavailable (Check WHOIS link)") {
+          return result;
+        }
+      }
+    } catch (e) {
+      console.warn("Direct Verisign RDAP error, trying next source:", e);
+    }
+  }
+
+  // Source 2: NetworkCalc Public WHOIS API (CORS enabled, supports .com, .org, .xyz, .net, etc.)
   try {
-    const res = await fetch(`https://rdap.org/domain/${domain}`);
-    if (!res.ok) return result;
-    const data = await res.json();
-    
-    // Find events
-    if (data.events) {
-      const eventsMap = {};
-      data.events.forEach(e => { eventsMap[e.eventAction] = e.eventDate; });
-      result.created = eventsMap["registration"] || null;
-      result.expires = eventsMap["expiration"] || null;
-      if (result.created) {
-        const createDate = new Date(result.created);
-        const diffTime = Math.abs(Date.now() - createDate.getTime());
-        result.ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const res = await fetchWithTimeout(`https://networkcalc.com/api/dns/whois/${domain}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === "OK" && data.whois) {
+        const w = data.whois;
+        if (w.registrar) result.registrar = w.registrar;
+        if (w.registry_created_date) {
+          result.created = w.registry_created_date;
+          const dt = new Date(w.registry_created_date);
+          if (!isNaN(dt.getTime())) {
+            result.ageDays = Math.floor(Math.abs(Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
+          }
+        }
+        if (w.registry_expiration_date) result.expires = w.registry_expiration_date;
+        if (w.abuse_email) result.abuseEmail = w.abuse_email;
+        if (result.created) return result;
       }
     }
+  } catch (e) {
+    console.warn("NetworkCalc WHOIS error, trying generic RDAP relay:", e);
+  }
 
-    // Find registrar
-    if (data.entities) {
-      for (const ent of data.entities) {
-        if (ent.roles && ent.roles.includes("registrar")) {
-          if (ent.vcardArray && ent.vcardArray[1]) {
-            const fn = ent.vcardArray[1].find(p => p[0] === "fn");
-            if (fn) result.registrar = fn[3];
+  // Source 3: rdap.org generic relay fallback
+  try {
+    const res = await fetchWithTimeout(`https://rdap.org/domain/${domain}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.events && Array.isArray(data.events)) {
+        const regEvent = data.events.find(e => e.eventAction === "registration");
+        const expEvent = data.events.find(e => e.eventAction === "expiration");
+        if (regEvent && regEvent.eventDate) {
+          result.created = regEvent.eventDate;
+          const dt = new Date(regEvent.eventDate);
+          if (!isNaN(dt.getTime())) {
+            result.ageDays = Math.floor(Math.abs(Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
           }
-          if (result.registrar === "Unknown" && ent.handle) {
-            result.registrar = ent.handle;
-          }
+        }
+        if (expEvent && expEvent.eventDate) result.expires = expEvent.eventDate;
+      }
+      if (data.entities && Array.isArray(data.entities)) {
+        const regEntity = data.entities.find(e => e.roles && e.roles.includes("registrar"));
+        if (regEntity) {
+          const fnProp = regEntity.vcardArray?.[1]?.find(p => p[0] === "fn");
+          if (fnProp && fnProp[3]) result.registrar = fnProp[3];
+          else if (regEntity.handle) result.registrar = regEntity.handle;
         }
       }
     }
-  } catch {
-    // RDAP rate limit or ccTLD without public endpoint
+  } catch (e) {
+    console.warn("rdap.org relay error:", e);
   }
+
   return result;
 }
 
@@ -491,21 +623,157 @@ async function queryRIPE(ip) {
   return bgp;
 }
 
-// urlscan.io Public Search Query
+// ==============================================================================
+// URLSCAN.IO API INTEGRATION
+// ==============================================================================
+function getUrlscanApiKey() {
+  return (localStorage.getItem("tw_urlscan_api_key") || "").trim();
+}
+
+function saveUrlscanApiKey(key) {
+  const cleanKey = (key || "").trim();
+  if (cleanKey) {
+    localStorage.setItem("tw_urlscan_api_key", cleanKey);
+    showToast("urlscan.io API Key saved successfully!");
+  } else {
+    localStorage.removeItem("tw_urlscan_api_key");
+  }
+  updateUrlscanKeyUI();
+}
+
+function clearUrlscanApiKey() {
+  localStorage.removeItem("tw_urlscan_api_key");
+  updateUrlscanKeyUI();
+  showToast("urlscan.io API Key removed.");
+}
+
+function updateUrlscanKeyUI() {
+  const key = getUrlscanApiKey();
+  if (key) {
+    const masked = key.length > 8 ? `${key.slice(0, 4)}••••${key.slice(-4)}` : "••••••••";
+    if (urlscanKeyToggleBtn) {
+      urlscanKeyToggleBtn.innerHTML = `🔑 Key Active <span style="color:#10b981;">●</span>`;
+      urlscanKeyToggleBtn.classList.add("btn-key-active");
+    }
+    if (urlscanKeyStatusText) {
+      urlscanKeyStatusText.innerHTML = `<span style="color:#10b981;">Active</span> (<code>${masked}</code>)`;
+    }
+    if (urlscanApiKeyInput) {
+      urlscanApiKeyInput.value = key;
+    }
+  } else {
+    if (urlscanKeyToggleBtn) {
+      urlscanKeyToggleBtn.innerHTML = `🔑 urlscan.io Key`;
+      urlscanKeyToggleBtn.classList.remove("btn-key-active");
+    }
+    if (urlscanKeyStatusText) {
+      urlscanKeyStatusText.innerHTML = `<span class="text-muted">No API Key configured (Public Quotas)</span>`;
+    }
+    if (urlscanApiKeyInput) {
+      urlscanApiKeyInput.value = "";
+    }
+  }
+}
+
+// urlscan.io Search API Query
 async function queryUrlscan(domain) {
-  const result = { scansFound: 0, latestUrl: null, screenshotUrl: null };
+  const result = {
+    scansFound: 0,
+    latestUrl: null,
+    screenshotUrl: null,
+    malicious: false,
+    score: 0,
+    title: null,
+    server: null,
+    ip: null,
+    date: null,
+    categories: []
+  };
+
+  const apiKey = getUrlscanApiKey();
+  const headers = { "Accept": "application/json" };
+  if (apiKey) {
+    headers["API-Key"] = apiKey;
+  }
+
   try {
-    const res = await fetch(`https://urlscan.io/api/v1/search/?q=domain:${domain}&size=1`);
+    const res = await fetch(`https://urlscan.io/api/v1/search/?q=domain:${encodeURIComponent(domain)}&size=5`, {
+      headers,
+      mode: "cors"
+    });
+
     if (res.ok) {
       const data = await res.json();
       result.scansFound = data.total || 0;
       if (data.results && data.results.length > 0) {
-        result.latestUrl = data.results[0].result;
-        result.screenshotUrl = data.results[0].screenshot;
+        const first = data.results[0];
+        result.latestUrl = first.result;
+        result.screenshotUrl = first.screenshot;
+        result.date = (first.task?.time || "").slice(0, 10);
+        result.title = first.page?.title || null;
+        result.server = first.page?.server || null;
+        result.ip = first.page?.ip || null;
+
+        const verdicts = first.verdicts?.overall || {};
+        result.malicious = !!verdicts.malicious;
+        result.score = verdicts.score || 0;
+        result.categories = verdicts.categories || [];
       }
     }
-  } catch {}
+  } catch (err) {
+    console.warn("urlscan.io API search query failed or blocked by CORS:", err);
+  }
+
   return result;
+}
+
+// urlscan.io Submission API (Live Scan)
+async function submitUrlscanScan(domain) {
+  if (!domain) return;
+  const apiKey = getUrlscanApiKey();
+
+  if (!apiKey) {
+    openUrlscanModal();
+    showToast("Please save your urlscan.io API Key to submit scans.");
+    return;
+  }
+
+  if (!urlscanSubmitBtn || !urlscanSubmitMsg) return;
+
+  const targetUrl = domain.startsWith("http") ? domain : `https://${domain}`;
+  urlscanSubmitBtn.disabled = true;
+  urlscanSubmitBtn.innerText = "⏳ Submitting...";
+  urlscanSubmitMsg.style.display = "block";
+  urlscanSubmitMsg.innerHTML = `<span class="spinner" style="display:inline-block; vertical-align:middle; width:12px; height:12px; margin-right:4px;"></span> Dispatching scan request to urlscan.io API...`;
+
+  try {
+    const res = await fetch("https://urlscan.io/api/v1/scan/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "API-Key": apiKey
+      },
+      body: JSON.stringify({
+        url: targetUrl,
+        visibility: "public",
+        tags: ["thoughtworks-domain-shield"]
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.result) {
+      urlscanSubmitMsg.innerHTML = `✅ Scan queued! <a href="${data.result}" target="_blank" class="text-cyan font-bold">Open Live Scan Report ↗</a> (UUID: ${data.uuid ? data.uuid.slice(0, 8) : 'done'}...)`;
+      showToast("Scan queued on urlscan.io!");
+    } else {
+      const errMsg = data.message || data.description || "Scan submission rejected";
+      urlscanSubmitMsg.innerHTML = `⚠️ Error: ${escapeHtml(errMsg)}`;
+    }
+  } catch (err) {
+    urlscanSubmitMsg.innerHTML = `⚠️ Submission error (${escapeHtml(err.message)}). <a href="https://urlscan.io/search/#domain%3A${encodeURIComponent(domain)}" target="_blank" class="text-cyan">Open urlscan.io directly ↗</a>`;
+  } finally {
+    urlscanSubmitBtn.disabled = false;
+    urlscanSubmitBtn.innerText = "⚡ Submit Scan (API)";
+  }
 }
 
 // ==============================================================================
@@ -585,6 +853,18 @@ function calculateRisk(intel) {
     indicators.push("Weak DMARC Policy: Configured with 'p=none' (monitoring mode, no spoofing rejection)");
   }
 
+  // 7. urlscan.io Sandbox Threat Verdicts
+  if (intel.urlscan) {
+    if (intel.urlscan.malicious || intel.urlscan.score >= 50) {
+      score += 35;
+      indicators.push(`urlscan.io Threat Verdict: Domain carries MALICIOUS verdict (Score: ${intel.urlscan.score})`);
+    }
+    if (intel.urlscan.title && intel.urlscan.title.toLowerCase().includes("thoughtworks")) {
+      score += 25;
+      indicators.push(`Brand Hijacking in Page Content: urlscan.io landing title mentions 'Thoughtworks' ("${intel.urlscan.title}")`);
+    }
+  }
+
   const finalScore = Math.min(100, Math.max(0, score));
   let verdict = "BENIGN / LOW RISK";
   if (finalScore >= 80) verdict = "CRITICAL RISK (ACTIVE THOUGHTWORKS IMPERSONATION)";
@@ -656,20 +936,93 @@ function renderResults(intel) {
     : `<span class="text-red">MISSING (Vulnerable to spoofing)</span>`;
 
   // 5. RDAP & Registration
-  rdapRegistrar.innerText = intel.rdap.registrar;
-  rdapCreated.innerText = intel.rdap.created ? intel.rdap.created.slice(0, 10) : "Unknown";
-  rdapAge.innerText = intel.rdap.ageDays !== null ? `${intel.rdap.ageDays} days` : "Unknown";
-  rdapExpires.innerText = intel.rdap.expires ? intel.rdap.expires.slice(0, 10) : "Unknown";
+  if (intel.rdap.registrar && intel.rdap.registrar !== "Unavailable (Check WHOIS link)") {
+    rdapRegistrar.innerText = intel.rdap.registrar;
+  } else {
+    rdapRegistrar.innerHTML = `<a href="https://who.is/whois/${intel.domain}" target="_blank" class="text-cyan">Query Who.is ↗</a>`;
+  }
 
-  // 6. Sandbox & SSL
-  urlscanCount.innerText = `${intel.urlscan.scansFound} scan(s)`;
+  if (intel.rdap.created) {
+    rdapCreated.innerText = intel.rdap.created.slice(0, 10);
+  } else {
+    rdapCreated.innerHTML = `<a href="https://lookup.icann.org/en/lookup?q=${encodeURIComponent(intel.domain)}" target="_blank" class="text-cyan">Query ICANN ↗</a>`;
+  }
+
+  if (intel.rdap.ageDays !== null && !isNaN(intel.rdap.ageDays)) {
+    let ageStr = `${intel.rdap.ageDays} days`;
+    if (intel.rdap.ageDays < 30) {
+      ageStr += " ⚠️ [CRITICAL: < 30 DAYS]";
+      rdapAge.className = "row-value mono text-red";
+    } else if (intel.rdap.ageDays < 90) {
+      ageStr += " ⚠️ [NEW DOMAIN]";
+      rdapAge.className = "row-value mono text-yellow";
+    } else {
+      rdapAge.className = "row-value mono text-cyan";
+    }
+    rdapAge.innerText = ageStr;
+  } else {
+    rdapAge.innerText = "Unknown";
+    rdapAge.className = "row-value mono text-muted";
+  }
+
+  if (intel.rdap.expires) {
+    rdapExpires.innerText = intel.rdap.expires.slice(0, 10);
+  } else {
+    rdapExpires.innerText = "Unknown";
+  }
+
+  // 6. Sandbox & SSL (urlscan.io & crt.sh)
+  urlscanCount.innerText = `${intel.urlscan.scansFound} scan(s) on record`;
+  
+  if (intel.urlscan.scansFound > 0) {
+    if (urlscanVerdictRow && urlscanVerdict) {
+      urlscanVerdictRow.style.display = "flex";
+      if (intel.urlscan.malicious || intel.urlscan.score >= 50) {
+        urlscanVerdict.innerHTML = `<span class="badge-verdict" style="background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; font-size:0.75rem; padding:0.2rem 0.5rem;">🚨 MALICIOUS (Score: ${intel.urlscan.score})</span>`;
+      } else {
+        urlscanVerdict.innerHTML = `<span class="badge-verdict" style="background:rgba(16,185,129,0.2); color:#10b981; border:1px solid #10b981; font-size:0.75rem; padding:0.2rem 0.5rem;">🛡️ Clean / Unrated (${intel.urlscan.score || 0})</span>`;
+      }
+    }
+
+    if (urlscanTitleRow && urlscanTitle) {
+      if (intel.urlscan.title) {
+        urlscanTitleRow.style.display = "flex";
+        urlscanTitle.innerText = intel.urlscan.title;
+        urlscanTitle.title = intel.urlscan.title;
+      } else {
+        urlscanTitleRow.style.display = "none";
+      }
+    }
+  } else {
+    if (urlscanVerdictRow) urlscanVerdictRow.style.display = "none";
+    if (urlscanTitleRow) urlscanTitleRow.style.display = "none";
+  }
+
   urlscanLink.innerHTML = intel.urlscan.latestUrl 
-    ? `<a href="${intel.urlscan.latestUrl}" target="_blank" class="text-cyan">View Scan</a>` 
-    : `<a href="https://urlscan.io/search/#domain%3A${intel.domain}" target="_blank" class="text-cyan">Search urlscan.io</a>`;
+    ? `<a href="${intel.urlscan.latestUrl}" target="_blank" class="text-cyan font-bold">View Latest Scan Report ↗</a>` 
+    : `<a href="https://urlscan.io/search/#domain%3A${encodeURIComponent(intel.domain)}" target="_blank" class="text-cyan">Search on urlscan.io ↗</a>`;
+    
   urlscanScreenshot.innerHTML = intel.urlscan.screenshotUrl 
-    ? `<a href="${intel.urlscan.screenshotUrl}" target="_blank" class="text-yellow">View Snapshot</a>` 
-    : `None available`;
-  crtshLink.innerHTML = `<a href="https://crt.sh/?q=%25${intel.domain}" target="_blank" class="text-cyan">View crt.sh Certs</a>`;
+    ? `<a href="${intel.urlscan.screenshotUrl}" target="_blank" class="text-yellow">View High-Res Snapshot ↗</a>` 
+    : `<span class="text-muted">None available</span>`;
+
+  if (urlscanThumbWrapper && urlscanThumbImg && urlscanThumbLink) {
+    if (intel.urlscan.screenshotUrl) {
+      urlscanThumbWrapper.style.display = "block";
+      urlscanThumbImg.src = intel.urlscan.screenshotUrl;
+      urlscanThumbLink.href = intel.urlscan.latestUrl || intel.urlscan.screenshotUrl;
+    } else {
+      urlscanThumbWrapper.style.display = "none";
+      urlscanThumbImg.src = "";
+    }
+  }
+
+  if (urlscanSubmitMsg) {
+    urlscanSubmitMsg.style.display = "none";
+    urlscanSubmitMsg.innerHTML = "";
+  }
+
+  crtshLink.innerHTML = `<a href="https://crt.sh/?q=%25${intel.domain}" target="_blank" class="text-cyan">View crt.sh Certs ↗</a>`;
 
   // 7. Render 13 Investigation Tools
   const primaryIp = intel.dns.a[0] || null;

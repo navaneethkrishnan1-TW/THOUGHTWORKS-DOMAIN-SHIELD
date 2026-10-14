@@ -50,7 +50,10 @@ Traditional web tools require complex Python backends. This web application runs
    - `NS` records (authoritative nameservers)
 2. **ICANN RDAP Protocol**: Queries `https://rdap.org/domain/<domain>` over HTTPS with CORS to extract registrar identity, registration date, expiration, and exact domain age in days.
 3. **BGP & ASN Intelligence**: Queries the **RIPE NCC** REST API (`https://stat.ripe.net/data/network-info/` & `as-overview/`) to map resolved IP addresses to their Autonomous System Number (ASN), AS Name, and BGP CIDR prefix.
-4. **Public urlscan.io Feed**: Queries `https://urlscan.io/api/v1/search/` for historical DOM and screenshot captures.
+4. **urlscan.io API (Search & Live Submissions)**:
+   - **Search API (`/api/v1/search/`)**: Fetches historical DOM captures, landing page titles, server banners, malicious verdicts/scores, and live screenshots.
+   - **Submission API (`/api/v1/scan/`)**: Allows 1-click submission of live scans directly from the browser using your `urlscan.io API Key`.
+   - **API Key Persistence**: API keys are saved locally in browser `localStorage` (zero backend/server storage).
 5. **Memory System (NT Storage)**: Persists previous domain investigations in browser `localStorage` (`TW_NT_INVESTIGATIONS_MEMORY`). Analysts can inspect past targets, re-load them with 1 click, or export the full memory dossier to JSON.
 6. **One-Click Launchpad for All 13 Tools**: Pre-fills target domains and IPs and opens all 13 tools simultaneously in separate browser tabs!
 
