@@ -180,9 +180,11 @@ const urlscanKeyQuickBtn = document.getElementById("urlscanKeyQuickBtn");
 const urlscanModal = document.getElementById("urlscanModal");
 const closeUrlscanModalBtn = document.getElementById("closeUrlscanModalBtn");
 const urlscanApiKeyInput = document.getElementById("urlscanApiKeyInput");
+const vtApiKeyInput = document.getElementById("vtApiKeyInput");
 const saveUrlscanKeyBtn = document.getElementById("saveUrlscanKeyBtn");
 const clearUrlscanKeyBtn = document.getElementById("clearUrlscanKeyBtn");
 const urlscanKeyStatusText = document.getElementById("urlscanKeyStatusText");
+const vtKeyStatusText = document.getElementById("vtKeyStatusText");
 const crtshLink = document.getElementById("crtshLink");
 
 const toolsGrid = document.getElementById("toolsGrid");
@@ -216,6 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function openUrlscanModal() {
   if (urlscanModal) {
     if (urlscanApiKeyInput) urlscanApiKeyInput.value = getUrlscanApiKey();
+    if (vtApiKeyInput) vtApiKeyInput.value = getVTApiKey();
     updateUrlscanKeyUI();
     urlscanModal.style.display = "flex";
   }
@@ -298,13 +301,15 @@ function setupEventListeners() {
   }
   if (saveUrlscanKeyBtn) {
     saveUrlscanKeyBtn.addEventListener("click", () => {
-      saveUrlscanApiKey(urlscanApiKeyInput ? urlscanApiKeyInput.value : "");
+      const uKey = urlscanApiKeyInput ? urlscanApiKeyInput.value : "";
+      const vKey = vtApiKeyInput ? vtApiKeyInput.value : "";
+      saveApiKeys(uKey, vKey);
       closeUrlscanModal();
     });
   }
   if (clearUrlscanKeyBtn) {
     clearUrlscanKeyBtn.addEventListener("click", () => {
-      clearUrlscanApiKey();
+      clearApiKeys();
       closeUrlscanModal();
     });
   }
@@ -630,47 +635,86 @@ function getUrlscanApiKey() {
   return (localStorage.getItem("tw_urlscan_api_key") || "").trim();
 }
 
-function saveUrlscanApiKey(key) {
-  const cleanKey = (key || "").trim();
-  if (cleanKey) {
-    localStorage.setItem("tw_urlscan_api_key", cleanKey);
-    showToast("urlscan.io API Key saved successfully!");
+function getVTApiKey() {
+  return (localStorage.getItem("tw_vt_api_key") || "").trim();
+}
+
+function saveApiKeys(urlscanKey, vtKey) {
+  const cleanUrlscan = (urlscanKey || "").trim();
+  const cleanVt = (vtKey || "").trim();
+
+  if (cleanUrlscan) {
+    localStorage.setItem("tw_urlscan_api_key", cleanUrlscan);
   } else {
     localStorage.removeItem("tw_urlscan_api_key");
   }
+
+  if (cleanVt) {
+    localStorage.setItem("tw_vt_api_key", cleanVt);
+  } else {
+    localStorage.removeItem("tw_vt_api_key");
+  }
+
   updateUrlscanKeyUI();
+  showToast("API keys saved safely in browser localStorage!");
 }
 
-function clearUrlscanApiKey() {
+function clearApiKeys() {
   localStorage.removeItem("tw_urlscan_api_key");
+  localStorage.removeItem("tw_vt_api_key");
   updateUrlscanKeyUI();
-  showToast("urlscan.io API Key removed.");
+  showToast("API keys cleared from browser.");
 }
 
 function updateUrlscanKeyUI() {
-  const key = getUrlscanApiKey();
-  if (key) {
-    const masked = key.length > 8 ? `${key.slice(0, 4)}••••${key.slice(-4)}` : "••••••••";
-    if (urlscanKeyToggleBtn) {
-      urlscanKeyToggleBtn.innerHTML = `🔑 Key Active <span style="color:#10b981;">●</span>`;
-      urlscanKeyToggleBtn.classList.add("btn-key-active");
-    }
+  const urlscanKey = getUrlscanApiKey();
+  const vtKey = getVTApiKey();
+
+  // 1. urlscan.io field
+  if (urlscanKey) {
+    const masked = urlscanKey.length > 8 ? `${urlscanKey.slice(0, 4)}••••${urlscanKey.slice(-4)}` : "••••••••";
     if (urlscanKeyStatusText) {
       urlscanKeyStatusText.innerHTML = `<span style="color:#10b981;">Active</span> (<code>${masked}</code>)`;
     }
     if (urlscanApiKeyInput) {
-      urlscanApiKeyInput.value = key;
+      urlscanApiKeyInput.value = urlscanKey;
     }
   } else {
-    if (urlscanKeyToggleBtn) {
-      urlscanKeyToggleBtn.innerHTML = `🔑 urlscan.io Key`;
-      urlscanKeyToggleBtn.classList.remove("btn-key-active");
-    }
     if (urlscanKeyStatusText) {
       urlscanKeyStatusText.innerHTML = `<span class="text-muted">No API Key configured (Public Quotas)</span>`;
     }
     if (urlscanApiKeyInput) {
       urlscanApiKeyInput.value = "";
+    }
+  }
+
+  // 2. VirusTotal field
+  if (vtKey) {
+    const masked = vtKey.length > 8 ? `${vtKey.slice(0, 4)}••••${vtKey.slice(-4)}` : "••••••••";
+    if (vtKeyStatusText) {
+      vtKeyStatusText.innerHTML = `<span style="color:#10b981;">Active</span> (<code>${masked}</code>)`;
+    }
+    if (vtApiKeyInput) {
+      vtApiKeyInput.value = vtKey;
+    }
+  } else {
+    if (vtKeyStatusText) {
+      vtKeyStatusText.innerHTML = `<span class="text-muted">No API Key configured (Standard Lookups)</span>`;
+    }
+    if (vtApiKeyInput) {
+      vtApiKeyInput.value = "";
+    }
+  }
+
+  // 3. Header button badge
+  const activeCount = (urlscanKey ? 1 : 0) + (vtKey ? 1 : 0);
+  if (urlscanKeyToggleBtn) {
+    if (activeCount > 0) {
+      urlscanKeyToggleBtn.innerHTML = `🔑 Keys (${activeCount}) <span style="color:#10b981;">●</span>`;
+      urlscanKeyToggleBtn.classList.add("btn-key-active");
+    } else {
+      urlscanKeyToggleBtn.innerHTML = `🔑 API Keys`;
+      urlscanKeyToggleBtn.classList.remove("btn-key-active");
     }
   }
 }

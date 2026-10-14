@@ -30,8 +30,8 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           navaneethkrishnan1-TW
         </span>
-        <button id="urlscanKeyToggleBtn" class="btn btn-outline btn-sm" title="Configure urlscan.io API Key">
-          🔑 urlscan.io Key
+        <button id="urlscanKeyToggleBtn" class="btn btn-outline btn-sm" title="Configure urlscan.io & VirusTotal API Keys">
+          🔑 API Keys
         </button>
         <button id="historyToggleBtn" class="btn btn-outline btn-sm">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -332,36 +332,63 @@
   </div>
   <div id="drawerOverlay" class="drawer-overlay"></div>
 
-  <!-- urlscan.io API Key Modal -->
+  <!-- Threat Intel API Keys Modal -->
   <div id="urlscanModal" class="modal-overlay" style="display: none;">
     <div class="modal-card card">
       <div class="modal-header">
-        <h3>⚙️ urlscan.io API Key Configuration</h3>
+        <h3>⚙️ Threat Intelligence API Keys</h3>
         <button id="closeUrlscanModalBtn" class="btn-close">&times;</button>
       </div>
       <div class="modal-body">
         <p class="search-instruction">
-          Configure your personal <strong>urlscan.io API Key</strong> to unlock authenticated searches, higher rate limits, and 1-click live scan submissions.
+          Keys are saved <strong>only in your browser's private localStorage</strong>. They are never committed to GitHub or exposed to the public.
         </p>
-        <div class="input-wrapper" style="margin: 1rem 0;">
-          <span class="input-icon">🔑</span>
-          <input 
-            type="password" 
-            id="urlscanApiKeyInput" 
-            placeholder="Enter API Key (e.g. 12345678-abcd-...)" 
-            autocomplete="off"
-            spellcheck="false"
-          >
+        
+        <!-- urlscan.io Key -->
+        <div style="margin-top: 1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #fff;">urlscan.io API Key</label>
+            <a href="https://urlscan.io/user/signup" target="_blank" class="text-cyan" style="font-size:0.75rem;">Get free key ↗</a>
+          </div>
+          <div class="input-wrapper" style="margin: 0.4rem 0;">
+            <span class="input-icon">🔍</span>
+            <input 
+              type="password" 
+              id="urlscanApiKeyInput" 
+              placeholder="e.g. 12345678-abcd-..." 
+              autocomplete="off"
+              spellcheck="false"
+            >
+          </div>
+          <div id="urlscanKeyStatus" style="font-size: 0.75rem; margin-bottom: 0.75rem;">
+            Status: <span id="urlscanKeyStatusText" class="text-muted">No API Key configured</span>
+          </div>
         </div>
-        <div id="urlscanKeyStatus" style="font-size: 0.8rem; margin-bottom: 1rem;">
-          Status: <span id="urlscanKeyStatusText" class="text-muted">No API Key configured</span>
+
+        <!-- VirusTotal Key -->
+        <div style="margin-top: 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #fff;">VirusTotal API Key</label>
+            <a href="https://www.virustotal.com/gui/join-us" target="_blank" class="text-cyan" style="font-size:0.75rem;">Get free key ↗</a>
+          </div>
+          <div class="input-wrapper" style="margin: 0.4rem 0;">
+            <span class="input-icon">🦠</span>
+            <input 
+              type="password" 
+              id="vtApiKeyInput" 
+              placeholder="e.g. 64-character hex key..." 
+              autocomplete="off"
+              spellcheck="false"
+            >
+          </div>
+          <div id="vtKeyStatus" style="font-size: 0.75rem; margin-bottom: 0.75rem;">
+            Status: <span id="vtKeyStatusText" class="text-muted">No API Key configured</span>
+          </div>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Don't have a key? <a href="https://urlscan.io/user/signup" target="_blank" class="text-cyan">Sign up for a free account on urlscan.io ↗</a>
-        </div>
-        <div class="button-row">
-          <button id="saveUrlscanKeyBtn" type="button" class="btn btn-primary btn-sm">💾 Save API Key</button>
-          <button id="clearUrlscanKeyBtn" type="button" class="btn btn-ghost btn-sm text-red">Remove Key</button>
+
+        <div class="button-row" style="margin-top: 1.25rem;">
+          <button id="saveUrlscanKeyBtn" type="button" class="btn btn-primary btn-sm">💾 Save Keys in Browser</button>
+          <button id="clearUrlscanKeyBtn" type="button" class="btn btn-ghost btn-sm text-red">Clear Keys</button>
         </div>
       </div>
     </div>
